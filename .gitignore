@@ -1,0 +1,5 @@
+.settings/
+Debug/
+build/
+*.launch
+*.mxproject
