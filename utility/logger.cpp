@@ -1,5 +1,6 @@
 #include <cstdint>
 #include <array>
+#include <string_view>
 #include "cmsis_os.h"
 #include "main.h"
 #include "logger.h"
@@ -19,12 +20,12 @@ osThreadId_t logThreadID;
 
 void logMessage(const char *message)
 {
-    const char *c = message;
-    do
+    const std::string_view messageView(message);
+    for (const char c : messageView)
     {
-        log_segment_buffer[log_segment_size++] = *c;
+        log_segment_buffer[log_segment_size++] = c;
 
-        if (log_segment_size == LOG_SEGMENT_SIZE || *c == '\0')
+        if (log_segment_size == LOG_SEGMENT_SIZE || c == '\n')
         {
             osMutexAcquire(logMutex, osWaitForever);
             for (size_t i = 0; i < log_segment_size; i++)
@@ -35,8 +36,7 @@ void logMessage(const char *message)
             log_segment_size = 0;
             osMutexRelease(logMutex);
         }
-
-    } while (*c++ != '\0');
+    }
 }
 
 void loggerThread(void *argument)
