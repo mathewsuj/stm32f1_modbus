@@ -1,4 +1,12 @@
 {
   "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
-  "cmake.configureOnOpen": true
+  "cmake.configureOnOpen": true,
+  "files.associations": {
+    "cmsis_os.h": "c",
+    "main.h": "c",
+    "stm32f1xx_hal.h": "c",
+    "stm32f1xx_hal_conf.h": "c",
+    "stm32f1xx_hal_uart.h": "c",
+    "array": "cpp"
+  }
 }

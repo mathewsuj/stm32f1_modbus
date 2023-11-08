@@ -16,7 +16,7 @@
       "stopAtConnect": true,
       "postRemoteConnectCommands": [
         {
-          "text": "load build/debug/build/helloworld.elf"
+          "text": "load build/debug/build/stm32f1_modbus.elf"
         }
       ],
       "logging": {
