@@ -1,5 +1,6 @@
 #include <cstdint>
 #include <array>
+#include <string>
 #include "cmsis_os.h"
 #include "main.h"
 #include "logger.h"
@@ -19,7 +20,12 @@ osThreadId_t logThreadID;
 
 void logMessage(const char *message)
 {
-    const char *c = message;
+    int millis = HAL_GetTick();
+    std::string s = std::to_string(millis) + ": ";
+    ;
+    s += message;
+
+    const char *c = s.c_str();
     do
     {
         log_segment_buffer[log_segment_size++] = *c;

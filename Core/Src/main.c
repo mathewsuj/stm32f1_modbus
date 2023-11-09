@@ -311,6 +311,7 @@ void StartDefaultTask(void *argument)
   for (;;)
   {
     HAL_GPIO_TogglePin(USER_LED1_GPIO_Port, USER_LED1_Pin);
+    logMessage("modbus ver 1.0\r\n");
     osDelay(2000);
   }
   /* USER CODE END 5 */
