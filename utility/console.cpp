@@ -4,7 +4,8 @@
 #include <cstdarg>
 #include "cmsis_os.h"
 #include "main.h"
-#include "logger.h"
+#include "console.h"
+#include "circualrbuf.h"
 
 const uint8_t LOG_BUFFER_SIZE = 128;
 const uint8_t LOG_SEGMENT_SIZE = 10;
@@ -19,7 +20,10 @@ static size_t logBufferTail = 0;
 osMutexId_t logMutex, logFormatMutex;
 osThreadId_t logThreadID;
 
-void debug_log(const char *format, ...)
+static CircularBuffer<10> keyInp;
+static CircularBuffer<100> logBuf;
+
+void debugLog(const char *format, ...)
 {
     char buffer[256];
     std::va_list args;
@@ -60,8 +64,18 @@ void logMessage(const char *message)
 
     } while (*c++ != '\0');
 }
-
-void loggerThread(void *argument)
+static void processCommand(const std::string &str)
+{
+    if (str == "help")
+    {
+        logMessage("\n\rcommands:\n\r\thelp\n\r");
+    }
+    else
+    {
+        logMessage("\n\rcommand not found!\n\r");
+    }
+}
+void consoleThread(void *argument)
 {
     (void)argument;
 
@@ -78,8 +92,18 @@ void loggerThread(void *argument)
             logBufferTail = (logBufferTail + 1) % LOG_BUFFER_SIZE;
         }
         osMutexRelease(logMutex);
+        if (keyInp.isCommandFound())
+        {
+            processCommand(keyInp.getCommand());
+        }
     }
 }
+
+void consoleKeyRxd(char c)
+{
+    keyInp.write(c);
+}
+
 void initializeLogger()
 {
     // Create a mutex to protect the log buffer
@@ -87,8 +111,8 @@ void initializeLogger()
     logMutex = osMutexNew(&mutex_attr);
     logFormatMutex = osMutexNew(&mutex_attr);
 
-    // Create the logger thread
+    // Create the console thread
     osThreadAttr_t thread_attr = {0};
-    thread_attr.name = "Logger";
-    logThreadID = osThreadNew(loggerThread, NULL, &thread_attr);
+    thread_attr.name = "console";
+    logThreadID = osThreadNew(consoleThread, NULL, &thread_attr);
 }

@@ -6,8 +6,9 @@ extern "C"
 #endif
 
     void initializeLogger();
-    void debug_log(const char *format, ...);
+    void debugLog(const char *format, ...);
     void logMessage(const char *message);
+    void consoleKeyRxd(char c);
 
 #ifdef __cplusplus
 }

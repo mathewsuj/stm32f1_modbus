@@ -24,7 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
 #include "modbus.h"
-#include "logger.h"
+#include "console.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -282,14 +282,34 @@ static void MX_GPIO_Init(void)
   /* USER CODE END MX_GPIO_Init_2 */
 }
 #define USART_TIMEOUT 100
+#define kEY_BUFFER_MAX 10
 /* USER CODE BEGIN 4 */
+static char console_key_input;
+uint8_t status = 0;
+void int_console()
+{
+
+  HAL_UART_Receive_IT(&huart2, &console_key_input, 1);
+}
 void console_msg(char msg)
 {
   HAL_UART_Transmit(&huart2, &msg, 1, USART_TIMEOUT);
 }
-void HAL_USART_RxCpltCallback(UART_HandleTypeDef *huart)
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-  HAL_UART_Receive_IT(&huart1, modbus_rx, MODBUS_CMD_LEN);
+  if (huart->Instance == USART1)
+  {
+    status |= 0x4;
+    HAL_UART_Receive_IT(&huart1, modbus_rx, MODBUS_CMD_LEN);
+  }
+  if (huart->Instance == USART2)
+  {
+    status |= 0x8;
+    consoleKeyRxd(console_key_input);
+    HAL_GPIO_TogglePin(USER_LED1_GPIO_Port, USER_LED1_Pin);
+    //   debug_log("key rxd: %c", console_key_input);
+    HAL_UART_Receive_IT(&huart2, &console_key_input, 1);
+  }
 }
 
 /* USER CODE END 4 */
@@ -304,16 +324,25 @@ void HAL_USART_RxCpltCallback(UART_HandleTypeDef *huart)
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
-
-  HAL_UART_Receive_IT(&huart1, modbus_rx, MODBUS_CMD_LEN);
   logMessage("modbus ver 1.0\r\n");
+  if (HAL_UART_Receive_IT(&huart2, &console_key_input, 1) != HAL_OK)
+  {
+    logMessage("rx int uart2 error\r\n");
+    status |= 0x2;
+  };
+  if (HAL_UART_Receive_IT(&huart1, modbus_rx, MODBUS_CMD_LEN) != HAL_OK)
+  {
+    logMessage("rx int uart1 error\r\n");
+    status |= 0x1;
+  };
+
   /* Infinite loop */
   for (;;)
   {
     double x = 2.437;
-    HAL_GPIO_TogglePin(USER_LED1_GPIO_Port, USER_LED1_Pin);
-    debug_log("modbus ver %lf\r\n", x);
-    osDelay(2000);
+    //   HAL_GPIO_TogglePin(USER_LED1_GPIO_Port, USER_LED1_Pin);
+    debugLog("modbus ver %d\r\n", status);
+    osDelay(5000);
   }
   /* USER CODE END 5 */
 }
