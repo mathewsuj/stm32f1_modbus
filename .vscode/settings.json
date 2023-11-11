@@ -9,6 +9,8 @@
     "stm32f1xx_hal_uart.h": "c",
     "array": "cpp",
     "string": "cpp",
-    "string_view": "cpp"
+    "string_view": "cpp",
+    "random": "cpp",
+    "algorithm": "cpp"
   }
 }

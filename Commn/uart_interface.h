@@ -1,8 +1,5 @@
+#pragma once
 #include <cstdint>
-
-#ifndef UART_INTERFACE_H
-#define UART_INTERFACE_H
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -27,5 +24,3 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
-
-#endif // UART_INTERFACE_H

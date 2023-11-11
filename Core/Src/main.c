@@ -23,7 +23,6 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
-#include "modbus.h"
 #include "console.h"
 /* USER CODE END Includes */
 
@@ -54,7 +53,7 @@ const osThreadAttr_t defaultTask_attributes = {
     .priority = (osPriority_t)osPriorityNormal,
 };
 /* USER CODE BEGIN PV */
-uint8_t modbus_rx[MODBUS_CMD_LEN];
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -293,14 +292,15 @@ void int_console()
 }
 void console_msg(char msg)
 {
-  HAL_UART_Transmit(&huart2, &msg, 1, USART_TIMEOUT);
+  if (msg != '\0')
+    HAL_UART_Transmit(&huart2, &msg, 1, USART_TIMEOUT);
 }
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
   if (huart->Instance == USART1)
   {
     status |= 0x4;
-    HAL_UART_Receive_IT(&huart1, modbus_rx, MODBUS_CMD_LEN);
+    // HAL_UART_Receive_IT(&huart1, uart_rx, UART_MSG_LEN);
   }
   if (huart->Instance == USART2)
   {
@@ -324,24 +324,24 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
-  logMessage("modbus ver 1.0\r\n");
+  logMessage("gaugeremote ver 1.0\r\n");
   if (HAL_UART_Receive_IT(&huart2, &console_key_input, 1) != HAL_OK)
   {
     logMessage("rx int uart2 error\r\n");
     status |= 0x2;
   };
-  if (HAL_UART_Receive_IT(&huart1, modbus_rx, MODBUS_CMD_LEN) != HAL_OK)
-  {
-    logMessage("rx int uart1 error\r\n");
-    status |= 0x1;
-  };
+  /*   if (HAL_UART_Receive_IT(&huart1, modbus_rx, MODBUS_CMD_LEN) != HAL_OK)
+    {
+      logMessage("rx int uart1 error\r\n");
+      status |= 0x1;
+    }; */
 
   /* Infinite loop */
   for (;;)
   {
     double x = 2.437;
     //   HAL_GPIO_TogglePin(USER_LED1_GPIO_Port, USER_LED1_Pin);
-    debugLog("modbus ver %d\r\n", status);
+    debugLog("gaugeremote ver %d\r\n", status);
     osDelay(5000);
   }
   /* USER CODE END 5 */

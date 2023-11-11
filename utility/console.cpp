@@ -7,21 +7,15 @@
 #include "console.h"
 #include "circualrbuf.h"
 
-const uint8_t LOG_BUFFER_SIZE = 128;
-const uint8_t LOG_SEGMENT_SIZE = 10;
-std::array<uint8_t, LOG_BUFFER_SIZE> log_buffer;
-std::array<uint8_t, LOG_SEGMENT_SIZE> log_segment_buffer;
-
-static size_t log_segment_size = 0;
-
-static size_t logBufferHead = 0;
-static size_t logBufferTail = 0;
+static constexpr uint8_t LOG_SEGMENT_SIZE = 10;
+char log_segment_buffer[LOG_SEGMENT_SIZE];
+static size_t log_segment_size{0};
 
 osMutexId_t logMutex, logFormatMutex;
 osThreadId_t logThreadID;
 
-static CircularBuffer<10> keyInp;
-static CircularBuffer<100> logBuf;
+static CircularBuffer<char, 10> keyInp;
+static CircularBuffer<char, 100> log_buffer;
 
 void debugLog(const char *format, ...)
 {
@@ -41,28 +35,20 @@ void debugLog(const char *format, ...)
 void logMessage(const char *message)
 {
     auto millis = osKernelGetTickCount();
-    std::string s = std::to_string(millis) + ": ";
-    ;
-    s += message;
+    std::string s = std::to_string(millis) + ": " + message;
 
-    const char *c = s.c_str();
-    do
+    for (const auto &c : s)
     {
-        log_segment_buffer[log_segment_size++] = *c;
+        log_segment_buffer[log_segment_size++] = c;
 
-        if (log_segment_size == LOG_SEGMENT_SIZE || *c == '\0')
+        if (log_segment_size == LOG_SEGMENT_SIZE || c == '\0')
         {
-            osMutexAcquire(logMutex, osWaitForever);
-            for (size_t i = 0; i < log_segment_size; i++)
-            {
-                log_buffer[logBufferHead] = log_segment_buffer[i];
-                logBufferHead = (logBufferHead + 1) % LOG_BUFFER_SIZE;
-            }
+            log_buffer.write(log_segment_buffer, log_segment_size);
+
             log_segment_size = 0;
             osMutexRelease(logMutex);
         }
-
-    } while (*c++ != '\0');
+    }
 }
 static void processCommand(const std::string &str)
 {
@@ -82,15 +68,10 @@ void consoleThread(void *argument)
     while (1)
     {
         osMutexAcquire(logMutex, osWaitForever);
-        if (logBufferHead != logBufferTail)
-        {
-            // Log a character from the buffer, e.g., send it to a UART or another output
-            char logChar = log_buffer[logBufferTail];
-            console_msg(logChar); // send char to console
 
-            // Move the tail to the next position in the circular buffer
-            logBufferTail = (logBufferTail + 1) % LOG_BUFFER_SIZE;
-        }
+        // Log a character from the buffer, e.g., send it to a UART
+        console_msg(log_buffer.read());
+
         osMutexRelease(logMutex);
         if (keyInp.isCommandFound())
         {

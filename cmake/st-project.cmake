@@ -114,7 +114,7 @@ target_sources(
     "Drivers\\STM32F1xx_HAL_Driver\\Src\\stm32f1xx_hal_uart.c"
     "Drivers\\STM32F1xx_HAL_Driver\\Src\\stm32f1xx_hal.c"
     "Commn\\uart_interface.cpp"
-    "Commn\\modbus.cpp"
+    "Commn\\sc400.cpp"
     "utility\\console.cpp"
 )
 

@@ -1,7 +1,7 @@
 // circular_buffer.h
 #pragma once
 
-template <int Size>
+template <typename T, int Size>
 class CircularBuffer
 {
     static constexpr char delimiter = '\r';
@@ -9,13 +9,40 @@ class CircularBuffer
 public:
     CircularBuffer() : head(0), tail(0), size(0), commandIndex(0), commandFound(false) {}
 
-    void write(const char data)
+    void write(const T data)
     {
         if (size == Size)
             return; // ignore input, buffer is full
         buffer[head] = data;
         head = (head + 1) % Size;
         size++;
+    }
+    void write(T *data, size_t count)
+    {
+        size_t size_front = Size - head;
+        if (size_front)
+        {
+            size_t part_count = (count < size_front) ? count : size_front;
+            std::copy(data, data + part_count, buffer + head);
+            count -= part_count;
+            size += part_count;
+        }
+        if (count)
+        {
+            std::copy(data, data + count, buffer);
+            size += count;
+        }
+    }
+    const char read()
+    {
+        if (size)
+        {
+            const char c = buffer[tail];
+            tail = (tail + 1) % Size;
+            size--;
+            return c;
+        }
+        return '\0';
     }
     bool isCommandFound()
     {
@@ -41,8 +68,8 @@ public:
     }
 
 private:
-    char buffer[Size];
-    char command[Size];
+    T buffer[Size];
+    T command[Size];
     int head;
     int tail;
     int size;
