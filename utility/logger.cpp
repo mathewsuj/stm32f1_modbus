@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <array>
 #include <string>
+#include <cstdarg>
 #include "cmsis_os.h"
 #include "main.h"
 #include "logger.h"
@@ -15,12 +16,27 @@ static size_t log_segment_size = 0;
 static size_t logBufferHead = 0;
 static size_t logBufferTail = 0;
 
-osMutexId_t logMutex;
+osMutexId_t logMutex, logFormatMutex;
 osThreadId_t logThreadID;
+
+void debug_log(const char *format, ...)
+{
+    char buffer[256];
+    std::va_list args;
+    va_start(args, format);
+
+    osMutexAcquire(logFormatMutex, osWaitForever);
+
+    vsnprintf(buffer, 256, format, args);
+    logMessage(buffer);
+
+    osMutexRelease(logFormatMutex);
+    va_end(args);
+}
 
 void logMessage(const char *message)
 {
-    int millis = HAL_GetTick();
+    auto millis = osKernelGetTickCount();
     std::string s = std::to_string(millis) + ": ";
     ;
     s += message;
@@ -69,6 +85,7 @@ void initializeLogger()
     // Create a mutex to protect the log buffer
     osMutexAttr_t mutex_attr = {0};
     logMutex = osMutexNew(&mutex_attr);
+    logFormatMutex = osMutexNew(&mutex_attr);
 
     // Create the logger thread
     osThreadAttr_t thread_attr = {0};

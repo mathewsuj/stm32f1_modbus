@@ -281,11 +281,11 @@ static void MX_GPIO_Init(void)
   /* USER CODE BEGIN MX_GPIO_Init_2 */
   /* USER CODE END MX_GPIO_Init_2 */
 }
-
+#define USART_TIMEOUT 100
 /* USER CODE BEGIN 4 */
 void console_msg(char msg)
 {
-  HAL_UART_Transmit(&huart2, &msg, 1, 100);
+  HAL_UART_Transmit(&huart2, &msg, 1, USART_TIMEOUT);
 }
 void HAL_USART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
@@ -310,8 +310,9 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for (;;)
   {
+    double x = 2.437;
     HAL_GPIO_TogglePin(USER_LED1_GPIO_Port, USER_LED1_Pin);
-    logMessage("modbus ver 1.0\r\n");
+    debug_log("modbus ver %lf\r\n", x);
     osDelay(2000);
   }
   /* USER CODE END 5 */
