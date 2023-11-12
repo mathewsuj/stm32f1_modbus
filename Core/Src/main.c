@@ -324,10 +324,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
-  logMessage("gaugeremote ver 1.0\r\n");
+  logMessage("gaugeremote ver 1.0\r\n", 0);
   if (HAL_UART_Receive_IT(&huart2, &console_key_input, 1) != HAL_OK)
   {
-    logMessage("rx int uart2 error\r\n");
+    debugLog("rx int uart2 error\r\n");
     status |= 0x2;
   };
   /*   if (HAL_UART_Receive_IT(&huart1, modbus_rx, MODBUS_CMD_LEN) != HAL_OK)
@@ -342,7 +342,7 @@ void StartDefaultTask(void *argument)
     double x = 2.437;
     //   HAL_GPIO_TogglePin(USER_LED1_GPIO_Port, USER_LED1_Pin);
     debugLog("gaugeremote ver %d\r\n", status);
-    osDelay(5000);
+    osDelay(1000);
   }
   /* USER CODE END 5 */
 }

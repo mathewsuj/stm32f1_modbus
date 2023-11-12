@@ -17,21 +17,20 @@ public:
         head = (head + 1) % Size;
         size++;
     }
-    void write(T *data, size_t count)
+    void write(const T *data, const size_t count)
     {
-        size_t size_front = Size - head;
+        const size_t size_front = Size - head;
+        size_t part_count = (count < size_front) ? count : size_front;
         if (size_front)
         {
-            size_t part_count = (count < size_front) ? count : size_front;
             std::copy(data, data + part_count, buffer + head);
-            count -= part_count;
-            size += part_count;
         }
-        if (count)
+        if (count - part_count)
         {
-            std::copy(data, data + count, buffer);
-            size += count;
+            std::copy(data + part_count, data + count, buffer);
         }
+        head = (head + count) % Size;
+        size += count;
     }
     const char read()
     {
