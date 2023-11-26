@@ -23,7 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
-#include "console.h"
+
 #define USART_TIMEOUT 100
 #define kEY_BUFFER_MAX 10
 /* USER CODE END Includes */
@@ -135,7 +135,7 @@ int main(void)
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
-  HAL_UART_Receive_IT(&huart2, &console_key_input, 1);
+
   /* USER CODE END RTOS_EVENTS */
 
   /* Start scheduler */
@@ -282,37 +282,6 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
-uint8_t status = 0;
-
-void console_putchar(char msg)
-{
-  if (msg != '\0')
-    HAL_UART_Transmit(&huart2, &msg, 1, USART_TIMEOUT);
-}
-
-void int_console()
-{
-
-  HAL_UART_Receive_IT(&huart2, &console_key_input, 1);
-}
-
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-  if (huart->Instance == USART1)
-  {
-    status |= 0x4;
-    // HAL_UART_Receive_IT(&huart1, uart_rx, UART_MSG_LEN);
-  }
-  if (huart->Instance == USART2)
-  {
-    status |= 0x8;
-    consoleKeyRxd(console_key_input);
-    HAL_GPIO_TogglePin(USER_LED1_GPIO_Port, USER_LED1_Pin);
-    //   debug_log("key rxd: %c", console_key_input);
-    HAL_UART_Receive_IT(&huart2, &console_key_input, 1);
-  }
-}
 
 /* USER CODE END 4 */
 

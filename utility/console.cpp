@@ -5,7 +5,7 @@
 #include <cstdarg>
 #include <string>
 
-#include "main.h"
+#include "hal.h"
 #include "console.h"
 #include "circualrbuf.h"
 #include "model.h"
@@ -77,6 +77,7 @@ static void processCommand(const std::string &str)
 void consoleThread(void *argument)
 {
     (void)argument;
+    console_rx_init();
 
     while (1)
     {

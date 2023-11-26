@@ -1,10 +1,3 @@
-/*
- * config.h
- *
- *  Created on: Jun 15, 2014
- *      Author: DELL
- */
-
 #pragma once
 
 #define MODBUS_ON

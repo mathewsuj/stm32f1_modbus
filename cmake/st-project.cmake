@@ -122,6 +122,7 @@ target_sources(
     "App\\app.cpp"
     "App\\model.cpp"
     "App\\manager.cpp"
+    "App\\hal.cpp"
 )
 
 add_custom_command(
