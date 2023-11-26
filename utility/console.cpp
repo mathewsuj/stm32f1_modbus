@@ -4,18 +4,26 @@
 #include <cstdio>
 #include <cstdarg>
 #include <string>
-#include "cmsis_os.h"
+
 #include "main.h"
 #include "console.h"
 #include "circualrbuf.h"
+#include "model.h"
+// #include "commands.h"
 
-static constexpr size_t LOG_SIZE = 100;
+namespace
+{
+
+    constexpr size_t LOG_SIZE = 100;
+    CircularBuffer<char, 15> keyInp;
+    CircularBuffer<char, LOG_SIZE> log_buffer;
+
+}
 
 osMutexId_t logMutex, logFormatMutex;
 osThreadId_t logThreadID;
 
-static CircularBuffer<char, 10> keyInp;
-static CircularBuffer<char, LOG_SIZE> log_buffer;
+// StringLookup CommandList;
 
 void debugLog(const char *format, ...)
 {
@@ -23,7 +31,9 @@ void debugLog(const char *format, ...)
     std::va_list args;
     va_start(args, format);
 
-    osMutexAcquire(logFormatMutex, osWaitForever);
+    const auto status = osMutexAcquire(logFormatMutex, osWaitForever);
+    if (status != osOK)
+        return;
 
     std::vsnprintf(buffer, LOG_SIZE, format, args);
     logMessage(buffer, true);
@@ -43,8 +53,10 @@ void logMessage(const char *message, int timestamp_enabled)
     std::strcat(s, message);
 
     osMutexAcquire(logMutex, osWaitForever);
+    static auto owner = osMutexGetOwner(logMutex);
     log_buffer.write(s, std::strlen(s));
     osMutexRelease(logMutex);
+    owner = {0};
 }
 static void processCommand(const std::string &str)
 {
@@ -52,9 +64,14 @@ static void processCommand(const std::string &str)
     {
         logMessage("\n\rcommands:\n\r\thelp\n\r", false);
     }
+    else if (str == "dump model")
+    {
+        dumpModel();
+    }
     else
     {
-        logMessage("\n\rcommand not found!\n\r", false);
+
+        logMessage("\n\r command not found!\n\r", false);
     }
 }
 void consoleThread(void *argument)
@@ -66,7 +83,7 @@ void consoleThread(void *argument)
         osMutexAcquire(logMutex, osWaitForever);
 
         // Log a character from the buffer, e.g., send it to a UART
-        console_msg(log_buffer.read());
+        console_putchar(log_buffer.read());
 
         osMutexRelease(logMutex);
         if (keyInp.isCommandFound())
@@ -76,12 +93,12 @@ void consoleThread(void *argument)
     }
 }
 
-void consoleKeyRxd(char c)
+extern "C" void consoleKeyRxd(char c)
 {
     keyInp.write(c);
 }
 
-void initializeLogger()
+void initializeLogger(osThreadAttr_t thread_attr)
 {
     // Create a mutex to protect the log buffer
     osMutexAttr_t mutex_attr = {0};
@@ -89,7 +106,6 @@ void initializeLogger()
     logFormatMutex = osMutexNew(&mutex_attr);
 
     // Create the console thread
-    osThreadAttr_t thread_attr = {0};
-    thread_attr.name = "console";
+
     logThreadID = osThreadNew(consoleThread, NULL, &thread_attr);
 }

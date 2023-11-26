@@ -1,0 +1,1 @@
+void console_putchar(char msg);

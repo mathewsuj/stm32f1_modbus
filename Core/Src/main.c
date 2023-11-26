@@ -24,6 +24,8 @@
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
 #include "console.h"
+#define USART_TIMEOUT 100
+#define kEY_BUFFER_MAX 10
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -53,7 +55,7 @@ const osThreadAttr_t defaultTask_attributes = {
     .priority = (osPriority_t)osPriorityNormal,
 };
 /* USER CODE BEGIN PV */
-
+static char console_key_input;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -62,7 +64,6 @@ static void MX_GPIO_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_USART2_UART_Init(void);
 void StartDefaultTask(void *argument);
-
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -128,14 +129,13 @@ int main(void)
   /* Create the thread(s) */
   /* creation of defaultTask */
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
-  initializeLogger();
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
-  /* add events, ... */
+  HAL_UART_Receive_IT(&huart2, &console_key_input, 1);
   /* USER CODE END RTOS_EVENTS */
 
   /* Start scheduler */
@@ -280,21 +280,23 @@ static void MX_GPIO_Init(void)
   /* USER CODE BEGIN MX_GPIO_Init_2 */
   /* USER CODE END MX_GPIO_Init_2 */
 }
-#define USART_TIMEOUT 100
-#define kEY_BUFFER_MAX 10
+
 /* USER CODE BEGIN 4 */
-static char console_key_input;
+
 uint8_t status = 0;
+
+void console_putchar(char msg)
+{
+  if (msg != '\0')
+    HAL_UART_Transmit(&huart2, &msg, 1, USART_TIMEOUT);
+}
+
 void int_console()
 {
 
   HAL_UART_Receive_IT(&huart2, &console_key_input, 1);
 }
-void console_msg(char msg)
-{
-  if (msg != '\0')
-    HAL_UART_Transmit(&huart2, &msg, 1, USART_TIMEOUT);
-}
+
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
   if (huart->Instance == USART1)
@@ -321,28 +323,13 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
  * @retval None
  */
 /* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void *argument)
+__weak void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
-  logMessage("gaugeremote ver 1.0\r\n", 0);
-  if (HAL_UART_Receive_IT(&huart2, &console_key_input, 1) != HAL_OK)
-  {
-    debugLog("rx int uart2 error\r\n");
-    status |= 0x2;
-  };
-  /*   if (HAL_UART_Receive_IT(&huart1, modbus_rx, MODBUS_CMD_LEN) != HAL_OK)
-    {
-      logMessage("rx int uart1 error\r\n");
-      status |= 0x1;
-    }; */
 
   /* Infinite loop */
   for (;;)
   {
-    double x = 2.437;
-    //   HAL_GPIO_TogglePin(USER_LED1_GPIO_Port, USER_LED1_Pin);
-    debugLog("gaugeremote ver %d\r\n", status);
-    osDelay(1000);
   }
   /* USER CODE END 5 */
 }

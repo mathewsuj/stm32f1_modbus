@@ -37,7 +37,7 @@ extern "C"
 
   /* Exported types ------------------------------------------------------------*/
   /* USER CODE BEGIN ET */
-  void console_msg(char msg);
+
   /* USER CODE END ET */
 
   /* Exported constants --------------------------------------------------------*/
@@ -62,7 +62,7 @@ extern "C"
 #define USER_LED1_GPIO_Port GPIOC
 
   /* USER CODE BEGIN Private defines */
-
+  void console_putchar(char msg);
   /* USER CODE END Private defines */
 
 #ifdef __cplusplus

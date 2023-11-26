@@ -13,12 +13,18 @@ public:
     {
         if (size == Size)
             return; // ignore input, buffer is full
+        if (head > Size - 1)
+        {
+            asm("bkpt 32");
+        }
         buffer[head] = data;
         head = (head + 1) % Size;
         size++;
     }
     void write(const T *data, const size_t count)
     {
+        if (count > Size)
+            return; // too long input
         const size_t size_front = Size - head;
         size_t part_count = (count < size_front) ? count : size_front;
         if (size_front)
@@ -54,7 +60,10 @@ public:
             }
             else
             {
-                command[commandIndex++] = buffer[tail];
+                if (commandIndex < Size)
+                {
+                    command[commandIndex++] = buffer[tail];
+                }
             }
         }
         return commandFound;
