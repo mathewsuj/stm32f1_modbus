@@ -1,38 +1,49 @@
-#include "stm32f1xx_hal.h"
+
 #include "console.h"
 #include "main.h"
+#include "hal.h"
+#include "hal_uart.h"
+
+#define USART_TIMEOUT 100
 
 extern UART_HandleTypeDef huart2;
-#define USART_TIMEOUT 100
-static uint8_t console_key_input;
+
+uint8_t console_key_input;
+
+port_config debug_port = {console_port, &huart2, &console_key_input, 1};
+port_config sensor_port1{undefined_port, NULL, (uint8_t *)NULL};
+port_config sensor_port2{undefined_port, NULL, (uint8_t *)NULL};
+#define MAX_UART_PORTS 3
+port_config port_list[MAX_UART_PORTS] = {sensor_port1, sensor_port2, debug_port};
+
+hal_uart::uart_device console(debug_port);
 
 void console_putchar(uint8_t msg)
 {
-    if (msg != '\0')
-        HAL_UART_Transmit(&huart2, &msg, 1, USART_TIMEOUT);
+    console.send_byte(msg);
 }
 void console_rx_init()
 {
+    console.init();
+}
 
-    if (HAL_UART_Receive_IT(&huart2, &console_key_input, 1) != HAL_OK)
+extern "C" port_config *get_uart_config(UART_HandleTypeDef *handle)
+{
+    for (int i = 0; i < MAX_UART_PORTS; i++)
     {
-        debugLog("rx int uart2 error\r\n");
+        if (handle == port_list[i].handle)
+            return &port_list[i];
     }
+    return NULL;
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-    if (huart->Instance == USART1)
+    port_config *port = get_uart_config(huart);
+    if (port->id != undefined_port)
     {
-
-        // HAL_UART_Receive_IT(&huart1, uart_rx, UART_MSG_LEN);
-    }
-    if (huart->Instance == USART2)
-    {
-
-        consoleKeyRxd(console_key_input);
-        HAL_GPIO_TogglePin(USER_LED1_GPIO_Port, USER_LED1_Pin);
-        //   debug_log("key rxd: %c", console_key_input);
-        HAL_UART_Receive_IT(&huart2, &console_key_input, 1);
+        if (port->id == console_port)
+            consoleKeyRxd(*(port->bufptr));
+        HAL_UART_Receive_IT(port->handle, port->bufptr, port->rx_buf_size);
     }
 }
