@@ -49,6 +49,9 @@
     "stdexcept": "cpp",
     "streambuf": "cpp",
     "typeinfo": "cpp",
-    "portmacro.h": "c"
+    "portmacro.h": "c",
+    "cstring": "cpp",
+    "map": "cpp",
+    "istream": "cpp"
   }
 }

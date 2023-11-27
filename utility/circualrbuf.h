@@ -1,6 +1,12 @@
 // circular_buffer.h
 #pragma once
 
+inline bool validateFrame(const uint8_t &data)
+{
+
+    return (data > 0);
+}
+
 template <typename T, int Size>
 class CircularBuffer
 {
@@ -73,6 +79,19 @@ public:
         commandFound = false;
         commandIndex = 0;
         return command;
+    }
+    template <typename Validator>
+    bool isValidFrame(Validator &&validateFunction) const
+    {
+
+        for (const auto &data : buffer)
+        {
+            if (!validateFunction(data))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
 private:
