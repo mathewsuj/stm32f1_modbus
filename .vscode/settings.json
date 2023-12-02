@@ -52,6 +52,8 @@
     "portmacro.h": "c",
     "cstring": "cpp",
     "map": "cpp",
-    "istream": "cpp"
+    "istream": "cpp",
+    "xstring": "cpp",
+    "xutility": "cpp"
   }
 }

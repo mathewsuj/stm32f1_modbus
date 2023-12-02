@@ -9,7 +9,6 @@ extern "C"
     void initializeLogger(osThreadAttr_t thread_attr);
     void debugLog(const char *format, ...);
     void logMessage(const char *message, int timestamp_enabled);
-    void consoleKeyRxd(char c);
 
 #ifdef __cplusplus
 }

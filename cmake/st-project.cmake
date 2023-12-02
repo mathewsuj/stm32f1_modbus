@@ -118,6 +118,7 @@ target_sources(
     "App\\hal.cpp"
     "App\\manager.cpp"
     "App\\model.cpp"
+    "App\\uart_device.cpp"
     "Commn\\sc400.cpp"
     "Commn\\uart_interface.cpp"
     "utility\\console.cpp"

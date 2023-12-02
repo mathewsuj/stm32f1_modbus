@@ -1,5 +1,6 @@
 // circular_buffer.h
 #pragma once
+#include <algorithm>
 
 inline bool validateFrame(const uint8_t &data)
 {
@@ -10,7 +11,7 @@ inline bool validateFrame(const uint8_t &data)
 template <typename T, int Size>
 class CircularBuffer
 {
-    static constexpr char delimiter = '\r';
+    // static constexpr char delimiter = '\r';
 
 public:
     CircularBuffer() : head(0), tail(0), size(0), commandIndex(0), commandFound(false) {}
@@ -55,14 +56,20 @@ public:
         }
         return '\0';
     }
-    bool isCommandFound()
+    T *getString(T delimiter)
     {
-        for (; (size != 0) && (commandFound == false); tail = (tail + 1) % Size, size--)
+        for (; (size != 0); tail = (tail + 1) % Size, size--)
         {
             if (buffer[tail] == delimiter)
             {
+                tail = (tail + 1) % Size;
+                size--;
+                if (commandIndex == 0)
+                    return nullptr;
                 command[commandIndex] = '\0';
-                commandFound = true;
+                commandIndex = 0;
+
+                return command;
             }
             else
             {
@@ -72,9 +79,9 @@ public:
                 }
             }
         }
-        return commandFound;
+        return nullptr;
     }
-    const char *getCommand()
+    T *getCommand()
     {
         commandFound = false;
         commandIndex = 0;

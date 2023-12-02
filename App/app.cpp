@@ -19,7 +19,6 @@ extern "C" void StartDefaultTask(void *argument)
   /* Infinite loop */
   for (;;)
   {
-    double x = 2.437;
     int status = 1;
     //   HAL_GPIO_TogglePin(USER_LED1_GPIO_Port, USER_LED1_Pin);
     debugLog("gaugeremote ver %d\r\n", status);

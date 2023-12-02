@@ -9,13 +9,13 @@
 #include "console.h"
 #include "circualrbuf.h"
 #include "model.h"
+#include "manager.h"
 // #include "commands.h"
 
 namespace
 {
 
     constexpr size_t LOG_SIZE = 100;
-    CircularBuffer<char, 15> keyInp;
     CircularBuffer<char, LOG_SIZE> log_buffer;
 
 }
@@ -38,7 +38,6 @@ void debugLog(const char *format, ...)
     std::vsnprintf(buffer, LOG_SIZE, format, args);
     logMessage(buffer, true);
 
-    osMutexRelease(logFormatMutex);
     va_end(args);
 }
 
@@ -51,12 +50,12 @@ void logMessage(const char *message, int timestamp_enabled)
         std::sprintf(s, "%d: ", millis);
     }
     std::strcat(s, message);
+    osMutexRelease(logFormatMutex);
 
     osMutexAcquire(logMutex, osWaitForever);
-    static auto owner = osMutexGetOwner(logMutex);
+
     log_buffer.write(s, std::strlen(s));
     osMutexRelease(logMutex);
-    owner = {0};
 }
 static void processCommand(const std::string &str)
 {
@@ -77,7 +76,6 @@ static void processCommand(const std::string &str)
 void consoleThread(void *argument)
 {
     (void)argument;
-    console_rx_init();
 
     while (1)
     {
@@ -87,16 +85,12 @@ void consoleThread(void *argument)
         console_putchar(log_buffer.read());
 
         osMutexRelease(logMutex);
-        if (keyInp.isCommandFound())
+        if (const char *inp = console_getcommand(); inp)
         {
-            processCommand(keyInp.getCommand());
+            if (*inp)
+                processCommand(inp);
         }
     }
-}
-
-extern "C" void consoleKeyRxd(char c)
-{
-    keyInp.write(c);
 }
 
 void initializeLogger(osThreadAttr_t thread_attr)
