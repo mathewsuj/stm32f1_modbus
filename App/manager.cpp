@@ -11,6 +11,7 @@
 #include "circualrbuf.h"
 #include "uart_device.h"
 #include "sc400.h"
+// #include "task.h"
 
 extern UART_HandleTypeDef huart1, huart2, huart3;
 
@@ -41,6 +42,9 @@ void managerThread(void *argument)
     // port_secondary_sensor.init(secondary_sensor.hnd, 50, 10);
     port_debug.init();
 
+    //  UBaseType_t uxHighWaterMark;
+    //  uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+
     while (1)
     {
         auto cmd = sc400.makeRequestPacket(302);
@@ -48,6 +52,7 @@ void managerThread(void *argument)
         if (auto size = cmd.length(); size > 0)
             port_primary_sensor.send_byte(cmd_array, size);
         osDelay(1000);
+        //  uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
     }
 }
 void console_putchar(const uint8_t data)

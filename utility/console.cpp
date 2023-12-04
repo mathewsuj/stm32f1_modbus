@@ -10,7 +10,8 @@
 #include "circualrbuf.h"
 #include "model.h"
 #include "manager.h"
-// #include "commands.h"
+// #include "task.h"
+//  #include "commands.h"
 
 namespace
 {
@@ -77,6 +78,9 @@ void consoleThread(void *argument)
 {
     (void)argument;
 
+    //  UBaseType_t uxHighWaterMark;
+    //  uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+
     while (1)
     {
         osMutexAcquire(logMutex, osWaitForever);
@@ -90,6 +94,7 @@ void consoleThread(void *argument)
             if (*inp)
                 processCommand(inp);
         }
+        //    uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
     }
 }
 
