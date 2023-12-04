@@ -7,18 +7,18 @@
 
 #include "hal.h"
 #include "console.h"
-#include "circualrbuf.h"
+#include "circularbuf.h"
 #include "model.h"
 #include "manager.h"
-// #include "task.h"
-//  #include "commands.h"
+// #define debug
+#ifdef debug
+#include "task.h"
+#endif
 
 namespace
 {
-
     constexpr size_t LOG_SIZE = 100;
     CircularBuffer<char, LOG_SIZE> log_buffer;
-
 }
 
 osMutexId_t logMutex, logFormatMutex;
@@ -52,11 +52,22 @@ void logMessage(const char *message, int timestamp_enabled)
     }
     std::strcat(s, message);
     osMutexRelease(logFormatMutex);
+    do
+    {
+        const auto status = osMutexAcquire(logMutex, osWaitForever);
+        if (status == osOK)
+        {
 
-    osMutexAcquire(logMutex, osWaitForever);
+            const auto status = log_buffer.write(s, std::strlen(s));
+            osMutexRelease(logMutex);
+            if (status)
+            {
+                break;
+            }
+        }
+        osDelay(10);
 
-    log_buffer.write(s, std::strlen(s));
-    osMutexRelease(logMutex);
+    } while (true);
 }
 static void processCommand(const std::string &str)
 {
@@ -66,7 +77,7 @@ static void processCommand(const std::string &str)
     }
     else if (str == "dump model")
     {
-        dumpModel();
+        // dumpModel();
     }
     else
     {
@@ -77,24 +88,40 @@ static void processCommand(const std::string &str)
 void consoleThread(void *argument)
 {
     (void)argument;
-
-    //  UBaseType_t uxHighWaterMark;
-    //  uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
-
+#ifdef debug
+    UBaseType_t uxHighWaterMark;
+    uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+#endif
+    bool write_in_progress = false;
     while (1)
     {
-        osMutexAcquire(logMutex, osWaitForever);
 
         // Log a character from the buffer, e.g., send it to a UART
-        console_putchar(log_buffer.read());
+        do
+        {
+            if (!write_in_progress)
+                osMutexAcquire(logMutex, osWaitForever);
+            const auto c = log_buffer.read();
+            if (!c)
+            {
+                osMutexRelease(logMutex);
+                write_in_progress = false;
+                break;
+            }
+            console_putchar(c);
+            write_in_progress = true;
 
-        osMutexRelease(logMutex);
+        } while (true);
+
         if (const char *inp = console_getcommand(); inp)
         {
             if (*inp)
                 processCommand(inp);
         }
-        //    uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+        osDelay(10);
+#ifdef debug
+        uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+#endif
     }
 }
 
@@ -102,8 +129,9 @@ void initializeLogger(osThreadAttr_t thread_attr)
 {
     // Create a mutex to protect the log buffer
     osMutexAttr_t mutex_attr = {0};
-    logMutex = osMutexNew(&mutex_attr);
+
     logFormatMutex = osMutexNew(&mutex_attr);
+    logMutex = osMutexNew(&mutex_attr);
 
     // Create the console thread
 

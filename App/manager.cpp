@@ -8,10 +8,13 @@
 #include "manager.h"
 #include "model.h"
 #include "hal.h"
-#include "circualrbuf.h"
+#include "circularbuf.h"
 #include "uart_device.h"
 #include "sc400.h"
-// #include "task.h"
+// #define debug
+#ifdef debug
+#include "task.h"
+#endif
 
 extern UART_HandleTypeDef huart1, huart2, huart3;
 
@@ -34,6 +37,8 @@ uart_device<uart_primary_sensor, char> port_primary_sensor(primary_sensor.hnd, 4
 // uart_device<uart_secondary_sensor> port_secondary_sensor;
 uart_device<uart_debug_port, char> port_debug(debug_port.hnd, 1);
 
+SensorData sensor_data;
+
 void managerThread(void *argument)
 {
     (void)argument;
@@ -42,8 +47,10 @@ void managerThread(void *argument)
     // port_secondary_sensor.init(secondary_sensor.hnd, 50, 10);
     port_debug.init();
 
-    //  UBaseType_t uxHighWaterMark;
-    //  uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+#ifdef debug
+    UBaseType_t uxHighWaterMark;
+    uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+#endif
 
     while (1)
     {
@@ -51,8 +58,22 @@ void managerThread(void *argument)
         const uint8_t *cmd_array = reinterpret_cast<const uint8_t *>(&cmd[0]);
         if (auto size = cmd.length(); size > 0)
             port_primary_sensor.send_byte(cmd_array, size);
-        osDelay(1000);
-        //  uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+        osDelay(500);
+        if (const char *inp = port_primary_sensor.getString(0x3); inp)
+        {
+            const char crc = port_primary_sensor.read();
+
+            if (*inp)
+                if (sc400.check_crc(inp, crc))
+                {
+                    Configurations newConfig;
+                    sc400.updateModel(inp, newConfig);
+                    sensor_data.updateData(newConfig);
+                }
+        }
+#ifdef debug
+        uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+#endif
     }
 }
 void console_putchar(const uint8_t data)
@@ -66,7 +87,6 @@ char *console_getcommand()
 }
 void initializeManager(osThreadAttr_t thread_attr)
 {
-    model_init();
     // Create the manager thread
     MgrThreadID = osThreadNew(managerThread, NULL, &thread_attr);
 }

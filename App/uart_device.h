@@ -1,6 +1,6 @@
 #pragma once
 #include "cmsis_os.h"
-#include "circualrbuf.h"
+#include "circularbuf.h"
 #include "protocolbase.h"
 
 template <typename PortId, typename T>
@@ -38,7 +38,10 @@ public:
     {
         return m_msg_buffer.getString(delimiter);
     }
-
+    const T read()
+    {
+        return m_msg_buffer.read();
+    }
 private:
     CircularBuffer<T, LOG_SIZE> m_msg_buffer;
     int m_timeout;

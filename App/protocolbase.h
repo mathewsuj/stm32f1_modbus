@@ -3,6 +3,6 @@
 class ProtocolBase
 {
 public:
-    virtual void check_crc(char *data) = 0;
+    virtual bool check_crc(const char *data, const char crc) = 0;
     virtual ~ProtocolBase() = default;
 };
