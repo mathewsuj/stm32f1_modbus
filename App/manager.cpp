@@ -7,7 +7,6 @@
 
 #include "manager.h"
 #include "model.h"
-#include "hal.h"
 #include "circularbuf.h"
 #include "uart_device.h"
 #include "sc400.h"

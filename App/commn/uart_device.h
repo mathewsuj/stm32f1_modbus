@@ -1,7 +1,6 @@
 #pragma once
 #include "cmsis_os.h"
 #include "circularbuf.h"
-#include "protocolbase.h"
 
 template <typename PortId, typename T>
 class uart_device
@@ -18,10 +17,6 @@ public:
         {
             //    debugLog("rx int uart2 error\r\n");
         }
-    }
-    void attachProtocolHandler(ProtocolBase *ptr)
-    {
-        protocolHandler = ptr;
     }
     void datardy()
     {
@@ -42,12 +37,12 @@ public:
     {
         return m_msg_buffer.read();
     }
+
 private:
     CircularBuffer<T, LOG_SIZE> m_msg_buffer;
     int m_timeout;
     UART_HandleTypeDef *m_hnd_port;
     size_t m_buf_size;
     uint8_t m_rx_buffer[msg_size];
-    ProtocolBase *protocolHandler;
     osMutexId_t bufMutex;
 };

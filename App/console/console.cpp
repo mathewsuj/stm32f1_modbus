@@ -5,7 +5,6 @@
 #include <cstdarg>
 #include <string>
 
-#include "hal.h"
 #include "console.h"
 #include "circularbuf.h"
 #include "model.h"
