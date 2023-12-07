@@ -6,7 +6,7 @@ extern "C"
 {
 #endif
 
-    void initializeLogger(osThreadAttr_t thread_attr);
+    void initializeLogger(osThreadAttr_t thread_attr_rx);
     void debugLog(const char *format, ...);
     void logMessage(const char *message, int timestamp_enabled);
 

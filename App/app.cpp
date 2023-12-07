@@ -1,7 +1,7 @@
 #include "console.h"
 #include "cmsis_os.h"
 #include "manager.h"
-// #define debug
+#define debug
 #ifdef debug
 #include "task.h"
 #endif
@@ -9,9 +9,9 @@
 extern "C" void StartDefaultTask(void *argument)
 {
 
-  osThreadAttr_t thread_attr_console = {
-      .name = "consoleTask",
-      .stack_size = 128 * 4,
+  osThreadAttr_t thread_attr_consoleRx = {
+      .name = "consoleRxTask",
+      .stack_size = 128 * 7,
       .priority = (osPriority_t)osPriorityNormal,
   };
 
@@ -21,7 +21,7 @@ extern "C" void StartDefaultTask(void *argument)
       .priority = (osPriority_t)osPriorityNormal,
   };
 
-  initializeLogger(thread_attr_console);
+  initializeLogger(thread_attr_consoleRx);
 
   initializeManager(thread_attr_manager);
 

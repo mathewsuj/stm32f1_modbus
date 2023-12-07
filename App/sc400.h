@@ -59,38 +59,38 @@ public:
     bool updateModel(const char *data, Configurations &conf)
     {
         int index = 1;
-        conf.status_mean_value = *data - '0';
+        conf.status_mean_value = *(data + StatusMeanValue.pos) - '0'; // skip STX and Command Id bytes
 
-        auto parseInteger = [](const char *begin, const char *end, uint16_t &value) -> bool
+        auto parseInteger = [](const char *begin, std::size_t size, auto &value) -> bool
         {
-            auto [p, ec] = std::from_chars(begin, end, value);
+            const auto end = begin + size;
+            auto [p, ec] = std::from_chars(begin, end, value, 10);
             return ec == std::errc() && p == end;
         };
-        if (!parseInteger(data + 1, data + 5, conf.mean_value))
+
+        if (!parseInteger(data + MeanValue.pos, MeanValue.size, conf.mean_value))
             return false;
 
-        if (!parseInteger(data + 7, data + 11, conf.deviation))
-            return false;
-        if (*(data + 6) == '-')
-            conf.deviation *= -1;
-        if (!parseInteger(data + 12, data + 16, conf.blue_diameter))
+        conf.sign_deviation = *(data + StatusMeanValue.pos); // skip STX and Command Id bytes
+
+        if (!parseInteger(data + Deviation.pos, Deviation.size, conf.deviation))
             return false;
 
-        if (!parseInteger(data + 17, data + 21, conf.magenta_diameter))
+        if (!parseInteger(data + BlueDiameter.pos, BlueDiameter.size, conf.blue_diameter))
             return false;
 
-        if (!parseInteger(data + 22, data + 26, conf.ovality))
+        if (!parseInteger(data + MagentaDiameter.pos, MagentaDiameter.size, conf.magenta_diameter))
             return false;
 
-        if (!parseInteger(data + 28, data + 32, conf.position_axis_blue))
+        if (!parseInteger(data + Ovality.pos, Ovality.size, conf.ovality))
             return false;
-        if (*(data + 27) == '-')
-            conf.position_axis_blue *= -1;
 
-        if (!parseInteger(data + 34, data + 38, conf.position_axis_magenta))
+        if (!parseInteger(data + PositioAxisBlue.pos, PositioAxisBlue.size, conf.position_axis_blue))
             return false;
-        if (*(data + 33) == '-')
-            conf.position_axis_magenta *= -1;
+
+        if (!parseInteger(data + PositioAxisMagenta.pos, PositioAxisMagenta.size, conf.position_axis_magenta))
+            return false;
+
         return true;
     }
 

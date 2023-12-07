@@ -11,7 +11,7 @@
 #include "circularbuf.h"
 #include "uart_device.h"
 #include "sc400.h"
-// #define debug
+#define debug
 #ifdef debug
 #include "task.h"
 #endif
@@ -81,9 +81,18 @@ void console_putchar(const uint8_t data)
     if (data != '\0')
         port_debug.send_byte(&data, 1);
 }
+void console_putstr(const uint8_t *data, std::size_t size)
+{
+    if ((size > 0) && (*data != '\0'))
+        port_debug.send_byte(data, size);
+}
 char *console_getcommand()
 {
     return port_debug.getString('\r');
+}
+void console_dumpmodel()
+{
+    sensor_data.dumpModel();
 }
 void initializeManager(osThreadAttr_t thread_attr)
 {

@@ -54,6 +54,10 @@
     "map": "cpp",
     "istream": "cpp",
     "xstring": "cpp",
-    "xutility": "cpp"
+    "xutility": "cpp",
+    "charconv": "cpp",
+    "optional": "cpp",
+    "iostream": "cpp",
+    "sstream": "cpp"
   }
 }
