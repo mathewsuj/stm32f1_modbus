@@ -117,9 +117,12 @@ target_sources(
     "Drivers\\STM32F1xx_HAL_Driver\\Src\\stm32f1xx_hal.c"
     "App\\app.cpp"
     "App\\commn\\hal.cpp"
+    "App\\commn\\protocolbase.cpp"
+    "App\\commn\\sc400.cpp"
+    "App\\console\\cli.cpp"
+    "App\\console\\console.cpp"
     "App\\manager.cpp"
     "App\\model.cpp"
-    "App\\console\\console.cpp"
 )
 
 add_custom_command(

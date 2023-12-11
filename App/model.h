@@ -7,7 +7,7 @@ struct DataDef
     std::size_t pos;
     std::size_t size;
 };
-const int db_start = 4;
+constexpr int db_start = 4;
 struct Configurations
 {
     uint8_t status_mean_value;
@@ -22,17 +22,21 @@ struct Configurations
     uint8_t sign_position_axis_magenta;
     uint16_t position_axis_magenta;
 };
-const DataDef StatusMeanValue{db_start, 1};
-const DataDef MeanValue{db_start + 1, 5};
-const DataDef SignDeviation{db_start + 6, 1};
-const DataDef Deviation{db_start + 7, 5};
-const DataDef BlueDiameter{db_start + 12, 5};
-const DataDef MagentaDiameter{db_start + 17, 5};
-const DataDef Ovality{db_start + 22, 5};
-const DataDef SignPositioAxisBlue{db_start + 27, 1};
-const DataDef PositioAxisBlue{db_start + 28, 5};
-const DataDef SignPositioAxisMagenta{db_start + 33, 1};
-const DataDef PositioAxisMagenta{db_start + 34, 5};
+namespace sikora
+{
+    constexpr DataDef StatusMeanValue{db_start, 1};
+    constexpr DataDef MeanValue{db_start + 1, 5};
+    constexpr DataDef SignDeviation{db_start + 6, 1};
+    constexpr DataDef Deviation{db_start + 7, 5};
+    constexpr DataDef BlueDiameter{db_start + 12, 5};
+    constexpr DataDef MagentaDiameter{db_start + 17, 5};
+    constexpr DataDef Ovality{db_start + 22, 5};
+    constexpr DataDef SignPositionAxisBlue{db_start + 27, 1};
+    constexpr DataDef PositionAxisBlue{db_start + 28, 5};
+    constexpr DataDef SignPositioAxisMagenta{db_start + 33, 1};
+    constexpr DataDef PositionAxisMagenta{db_start + 34, 5};
+    constexpr DataDef Sc400DataEnd{db_start + 39, 0};
+}
 
 class SensorData
 {
@@ -44,6 +48,7 @@ public:
         m_gauge_data = newData;
     }
     void dumpModel();
+    void GetValues(int type, char *buf);
 
 private:
     Configurations m_gauge_data;

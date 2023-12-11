@@ -17,6 +17,9 @@ extern "C"
     struct uart_secondary_sensor
     {
     };
+    struct uart_PC
+    {
+    };
 
     struct sc400
     {

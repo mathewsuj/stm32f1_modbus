@@ -9,6 +9,7 @@
 #include "circularbuf.h"
 #include "model.h"
 #include "manager.h"
+#include "cli.h"
 
 #define debug
 #ifdef debug
@@ -23,6 +24,8 @@ namespace
 osMutexId_t logFormatMutex;
 osThreadId_t thr_console_rx;
 
+utility::Cli cli;
+
 void debugLog(const char *format, ...)
 {
     char buffer[LOG_SIZE];
@@ -31,6 +34,7 @@ void debugLog(const char *format, ...)
     const auto status = osMutexAcquire(logFormatMutex, osWaitForever);
     if (status != osOK)
         return;
+
     va_start(args, format);
     std::vsnprintf(buffer, LOG_SIZE, format, args);
 
@@ -41,7 +45,6 @@ void debugLog(const char *format, ...)
 
 void logMessage(const char *message, int timestamp_enabled)
 {
-    //  auto st = logger.Get() << "test";
     char s[LOG_SIZE] = {'\0'};
     if (timestamp_enabled)
     {
@@ -51,22 +54,6 @@ void logMessage(const char *message, int timestamp_enabled)
     std::strcat(s, message);
 
     console_putstr((uint8_t *)&s[0], std::strlen(s));
-}
-static void processCommand(const std::string &str)
-{
-    if (str == "help")
-    {
-        logMessage("\n\rcommands:\n\r\thelp\n\r", false);
-    }
-    else if (str == "dump model")
-    {
-        console_dumpmodel();
-    }
-    else
-    {
-
-        logMessage("\n\r command not found!\n\r", false);
-    }
 }
 
 void consoleThreadRx(void *argument)
@@ -81,7 +68,7 @@ void consoleThreadRx(void *argument)
         if (const char *inp = console_getcommand(); inp)
         {
             if (*inp)
-                processCommand(inp);
+                cli.processCommand(inp);
         }
         osDelay(100);
 #ifdef debug

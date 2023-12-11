@@ -58,6 +58,7 @@
     "charconv": "cpp",
     "optional": "cpp",
     "iostream": "cpp",
-    "sstream": "cpp"
+    "sstream": "cpp",
+    "xtr1common": "cpp"
   }
 }

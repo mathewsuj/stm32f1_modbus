@@ -52,7 +52,7 @@ UART_HandleTypeDef huart3;
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
     .name = "defaultTask",
-    .stack_size = 128 * 8,
+    .stack_size = 128 * 7,
     .priority = (osPriority_t)osPriorityNormal,
 };
 /* USER CODE BEGIN PV */
@@ -336,6 +336,7 @@ __weak void StartDefaultTask(void *argument)
   /* Infinite loop */
   for (;;)
   {
+    osDelay(10);
   }
   /* USER CODE END 5 */
 }

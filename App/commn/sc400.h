@@ -1,20 +1,24 @@
 #pragma once
 #include <array>
 #include <string>
+#include <algorithm>
 #include <charconv>
+
 #include "model.h"
 
 #include "protocolbase.h"
+using namespace sikora;
 
 class Sc400 : public ProtocolBase
 {
 public:
     const int STX = 2;
     const int ETX = 3;
+    static const int TX_BUFFER_SIZE = 50;
 
     Sc400() = default;
 
-    bool check_crc(const char *data, const char crc) override
+    bool CheckCrc(const char *data, const char crc) override
     {
         uint8_t bcc = 0;
         if (*data != STX)
@@ -30,13 +34,17 @@ public:
 
         return crc == bcc;
     }
-
-    const std::string makeRequestPacket(int reqid)
+    bool PopulateHeader(int reqid)
+    {
+        if (reqid > 999)
+            return false;
+    }
+    const std::string MakeRequestPacket(int reqid)
     {
         if (reqid > 999)
             return std::string{}; // invalid reqid
         uint8_t bcc{0};
-        tx_buffer[0] = ETX;
+        m_tx_buffer[0] = STX;
         std::string str = std::to_string(reqid);
         while (str.length() < 3)
             str = "0" + str;
@@ -44,19 +52,55 @@ public:
         for (size_t i = 0; i < 3; ++i)
         {
             auto c = static_cast<uint8_t>(str[i]);
-            tx_buffer[i + 1] = c;
+            m_tx_buffer[i + 1] = c;
             bcc ^= c;
         }
-        tx_buffer[4] = STX;
+        m_tx_buffer[4] = ETX;
+        bcc ^= ETX;
+
+        if (bcc < 0x20)
+            bcc += 0x20;
+        m_tx_buffer[5] = bcc;
+        std::string msg(m_tx_buffer.begin(), m_tx_buffer.begin() + 6);
+        return msg;
+    }
+    const std::string MakeResponsePacket(int reqid, char *payload)
+    {
+        static_assert(StatusMeanValue.pos == 4);
+        if (reqid > 999)
+            return std::string{}; // invalid reqid
+        if (reqid != 302)
+            return std::string{};
+        uint8_t bcc{0};
+        m_tx_buffer[0] = ETX;
+        std::string str = std::to_string(reqid);
+        while (str.length() < 3)
+            str = "0" + str;
+
+        for (size_t i = 0; i < 3; ++i)
+        {
+            auto c = static_cast<uint8_t>(str[i]);
+            m_tx_buffer[i + 1] = c;
+            bcc ^= c;
+        }
+        // populate data
+        for (size_t i = StatusMeanValue.pos; i < Sc400DataEnd.pos; ++i)
+        {
+            auto c = static_cast<uint8_t>(*(payload + i));
+            m_tx_buffer[i] = c;
+            bcc ^= c;
+        }
+
+        m_tx_buffer[Sc400DataEnd.pos] = STX;
         bcc ^= STX;
 
         if (bcc < 0x20)
             bcc += 0x20;
-        tx_buffer[5] = bcc;
-        std::string msg(tx_buffer.begin(), tx_buffer.begin() + 6);
+        m_tx_buffer[Sc400DataEnd.pos + 1] = bcc;
+        std::string msg(m_tx_buffer.begin(), m_tx_buffer.begin() + Sc400DataEnd.pos + 1);
         return msg;
     }
-    bool updateModel(const char *data, Configurations &conf)
+    bool UpdateModel(const char *data, Configurations &conf)
     {
         int index = 1;
         conf.status_mean_value = *(data + StatusMeanValue.pos) - '0'; // skip STX and Command Id bytes
@@ -71,7 +115,7 @@ public:
         if (!parseInteger(data + MeanValue.pos, MeanValue.size, conf.mean_value))
             return false;
 
-        conf.sign_deviation = *(data + StatusMeanValue.pos); // skip STX and Command Id bytes
+        conf.sign_deviation = *(data + SignDeviation.pos); // skip STX and Command Id bytes
 
         if (!parseInteger(data + Deviation.pos, Deviation.size, conf.deviation))
             return false;
@@ -85,15 +129,15 @@ public:
         if (!parseInteger(data + Ovality.pos, Ovality.size, conf.ovality))
             return false;
 
-        if (!parseInteger(data + PositioAxisBlue.pos, PositioAxisBlue.size, conf.position_axis_blue))
+        if (!parseInteger(data + PositionAxisBlue.pos, PositionAxisBlue.size, conf.position_axis_blue))
             return false;
 
-        if (!parseInteger(data + PositioAxisMagenta.pos, PositioAxisMagenta.size, conf.position_axis_magenta))
+        if (!parseInteger(data + PositionAxisMagenta.pos, PositionAxisMagenta.size, conf.position_axis_magenta))
             return false;
 
         return true;
     }
 
 private:
-    std::array<uint8_t, 50> tx_buffer;
+    std::array<uint8_t, TX_BUFFER_SIZE> m_tx_buffer;
 };
