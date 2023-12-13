@@ -59,6 +59,9 @@
     "optional": "cpp",
     "iostream": "cpp",
     "sstream": "cpp",
-    "xtr1common": "cpp"
+    "xtr1common": "cpp",
+    "xmemory": "cpp",
+    "ctime": "cpp",
+    "iomanip": "cpp"
   }
 }

@@ -27,8 +27,8 @@ extern "C"
 
     void initializeManager(osThreadAttr_t thread_attr);
     extern "C" void sensorRxdData(UART_HandleTypeDef *huart);
-    void console_putchar(const uint8_t data);
-    void console_putstr(const uint8_t *data, std::size_t size);
+    void console_putchar(const char data);
+    void console_putstr(const char *data, std::size_t size);
     char *console_getcommand();
     void console_dumpmodel();
 

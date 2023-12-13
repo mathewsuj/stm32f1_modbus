@@ -23,10 +23,10 @@ portData<uart_primary_sensor> primary_sensor(&huart2);
 portData<uart_debug_port> debug_port(&huart3);
 portData<uart_PC> PC_port(&huart1);
 
-uart_device<ProtocolBase::SC400, char> port_primary_sensor(primary_sensor.hnd, 45);
+uart_device<ProtocolBase::ProtocolId::SC400, char> port_primary_sensor(primary_sensor.hnd, 45);
 // uart_device<uart_secondary_sensor> port_secondary_sensor;
-uart_device<ProtocolBase::NONE, char> port_debug(debug_port.hnd, 1);
-uart_device<ProtocolBase::SC400, char> port_PC(PC_port.hnd, 20);
+uart_device<ProtocolBase::ProtocolId::NONE, char> port_debug(debug_port.hnd, 1);
+uart_device<ProtocolBase::ProtocolId::SC400, char> port_PC(PC_port.hnd, 20);
 //-------------------------------------------------------------------------------
 
 SensorData sensor_data;
@@ -78,7 +78,7 @@ void managerThread(void *argument)
                     auto id = atoi(inp + 1);
                     logMessage("new packet from PC received\n\r", true);
                     char buf[100];
-                    sensor_data.GetValues(302, buf);
+                    sensor_data.GetValues<sc400>(302, buf);
                     port_PC.SendResponsePacket(id, buf);
                 }
         }
@@ -87,12 +87,12 @@ void managerThread(void *argument)
 #endif
     }
 }
-void console_putchar(const uint8_t data)
+void console_putchar(const char data)
 {
     if (data != '\0')
         port_debug.SendByte(&data, 1);
 }
-void console_putstr(const uint8_t *data, std::size_t size)
+void console_putstr(const char *data, std::size_t size)
 {
     if ((size > 0) && (*data != '\0'))
         port_debug.SendByte(data, size);

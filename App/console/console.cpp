@@ -53,7 +53,7 @@ void logMessage(const char *message, int timestamp_enabled)
     }
     std::strcat(s, message);
 
-    console_putstr((uint8_t *)&s[0], std::strlen(s));
+    console_putstr(&s[0], std::strlen(s));
 }
 
 void consoleThreadRx(void *argument)

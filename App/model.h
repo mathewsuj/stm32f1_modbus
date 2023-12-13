@@ -13,14 +13,14 @@ struct Configurations
     uint8_t status_mean_value;
     uint16_t mean_value;
     uint8_t sign_deviation;
-    uint16_t deviation;
+    int16_t deviation;
     uint16_t blue_diameter;
     uint16_t magenta_diameter;
     uint16_t ovality;
     uint8_t sign_position_axis_blue;
-    uint16_t position_axis_blue;
+    int16_t position_axis_blue;
     uint8_t sign_position_axis_magenta;
-    uint16_t position_axis_magenta;
+    int16_t position_axis_magenta;
 };
 namespace sikora
 {
@@ -33,7 +33,7 @@ namespace sikora
     constexpr DataDef Ovality{db_start + 22, 5};
     constexpr DataDef SignPositionAxisBlue{db_start + 27, 1};
     constexpr DataDef PositionAxisBlue{db_start + 28, 5};
-    constexpr DataDef SignPositioAxisMagenta{db_start + 33, 1};
+    constexpr DataDef SignPositionAxisMagenta{db_start + 33, 1};
     constexpr DataDef PositionAxisMagenta{db_start + 34, 5};
     constexpr DataDef Sc400DataEnd{db_start + 39, 0};
 }
@@ -48,6 +48,7 @@ public:
         m_gauge_data = newData;
     }
     void dumpModel();
+    template <typename protocol>
     void GetValues(int type, char *buf);
 
 private:

@@ -2,17 +2,18 @@
 #include "cmsis_os.h"
 #include "circularbuf.h"
 #include "sc400.h"
+#include "none.h"
 
 template <ProtocolBase::ProtocolId Id>
 struct ProtocolSelector;
 
 template <>
-struct ProtocolSelector<ProtocolBase::SC400>
+struct ProtocolSelector<ProtocolBase::ProtocolId::SC400>
 {
     using type = Sc400;
 };
 template <>
-struct ProtocolSelector<ProtocolBase::NONE>
+struct ProtocolSelector<ProtocolBase::ProtocolId::NONE>
 {
     using type = None;
 };
@@ -49,9 +50,9 @@ public:
     void SendRequestPacket(int id)
     {
         auto cmd = MakeRequestPacket(302);
-        const uint8_t *cmd_array = reinterpret_cast<const uint8_t *>(&cmd[0]);
-        if (auto size = cmd.length(); size > 0)
-            SendByte(cmd_array, size);
+
+        if (auto size = strlen(cmd); size > 0)
+            SendByte(cmd, size);
     }
     void UpdateModel(const char *data, Configurations &conf)
     {
@@ -59,16 +60,19 @@ public:
     }
     void SendResponsePacket(int id, char *buf)
     {
-        auto cmd = MakeResponsePacket(id, buf);
-        const uint8_t *cmd_array = reinterpret_cast<const uint8_t *>(&cmd[0]);
-        if (auto size = cmd.length(); size > 0)
-            SendByte(cmd_array, size);
+        auto statusOk = MakeResponsePacket(id, buf);
+
+        if (statusOk)
+        {
+            auto size = std::strlen(buf);
+            SendByte(buf, size);
+        }
     }
-    const std::string MakeRequestPacket(int id)
+    const char *MakeRequestPacket(int id)
     {
         return protocolInstance.MakeRequestPacket(id);
     }
-    const std::string MakeResponsePacket(int id, char *buf)
+    bool MakeResponsePacket(int id, char *buf)
     {
         return protocolInstance.MakeResponsePacket(id, buf);
     }
@@ -82,9 +86,9 @@ public:
         HAL_UART_Receive_IT(m_hnd_port, m_rx_buffer, m_buf_size);
     }
 
-    void SendByte(const uint8_t *data, size_t size)
+    void SendByte(const void *data, size_t size)
     {
-        HAL_UART_Transmit(m_hnd_port, data, size, m_timeout);
+        HAL_UART_Transmit(m_hnd_port, (const uint8_t *)data, size, m_timeout);
     }
     T *GetString(T delimiter)
     {
