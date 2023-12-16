@@ -12,9 +12,9 @@ using namespace sikora;
 class Sc400 : public ProtocolBase
 {
 public:
-    const int STX = 2;
-    const int ETX = 3;
-    static const int TX_BUFFER_SIZE = 50;
+    static constexpr int STX = 2;
+    static constexpr int ETX = 3;
+    static constexpr int TX_BUFFER_SIZE = 50;
 
     Sc400() = default;
 

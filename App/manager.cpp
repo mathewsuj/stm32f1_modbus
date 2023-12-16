@@ -54,7 +54,7 @@ void managerThread(void *argument)
         // get data from gauge
         port_primary_sensor.SendRequestPacket(302);
         osDelay(500);
-        if (const char *inp = port_primary_sensor.GetString(0x3); inp)
+        if (const char *inp = port_primary_sensor.GetString(Sc400::ETX); inp)
         {
             const char crc = port_primary_sensor.Read();
 
