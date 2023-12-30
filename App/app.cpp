@@ -1,7 +1,7 @@
 #include "console.h"
 #include "cmsis_os.h"
 #include "manager.h"
-// #define debug
+#define debug
 #ifdef debug
 #include "task.h"
 #endif
@@ -11,13 +11,13 @@ extern "C" void StartDefaultTask(void *argument)
 
   osThreadAttr_t thread_attr_consoleRx = {
       .name = "consoleRxTask",
-      .stack_size = 128 * 7,
+      .stack_size = 128 * 9,
       .priority = (osPriority_t)osPriorityNormal,
   };
 
   osThreadAttr_t thread_attr_manager = {
       .name = "managerTask",
-      .stack_size = 128 * 5,
+      .stack_size = 128 * 9,
       .priority = (osPriority_t)osPriorityNormal,
   };
 
@@ -37,8 +37,8 @@ extern "C" void StartDefaultTask(void *argument)
   {
     int status = 1;
     //   HAL_GPIO_TogglePin(USER_LED1_GPIO_Port, USER_LED1_Pin);
-    for (int i = 0; i < 2; i++)
-      debugLog("gaugeremote ver %d %d\r\n", status, i);
+    // for (int i = 0; i < 2; i++)
+    //   debugLog("gaugeremote ver %d %d\r\n", status, i);
     osDelay(1000);
 #ifdef debug
     uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);

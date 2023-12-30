@@ -29,35 +29,50 @@ struct portData
 };
 
 template <ProtocolBase::ProtocolId protocol_id, typename T>
-class uart_device
+class UartDevice
 {
     static constexpr size_t LOG_SIZE = 100;
-    static constexpr size_t msg_size = 50;
-    static constexpr int default_timeout = 150;
+    static constexpr size_t MSG_SIZE = 50;
+    static constexpr int DEFAULT_TIMEOUT = 150;
 
     SelectedProtocol<protocol_id> protocolInstance;
 
 public:
-    uart_device(UART_HandleTypeDef *hnd_port, size_t buf_size, int timeout = default_timeout) : m_hnd_port(hnd_port), m_buf_size(buf_size), m_timeout(timeout) {}
-    inline bool Init()
+    UartDevice(UART_HandleTypeDef *hnd_port, size_t buf_size, int timeout = DEFAULT_TIMEOUT) : m_hnd_port(hnd_port), m_buf_size(buf_size), m_timeout(timeout) {}
+    inline bool Init(const Communication::SerialPort &conf)
     {
-        if (HAL_UART_Receive_IT(m_hnd_port, m_rx_buffer, m_buf_size) != HAL_OK)
+        if (ChangeSettings(conf))
         {
-            return false;
+            if (HAL_UART_Receive_IT(m_hnd_port, m_rx_buffer, m_buf_size) != HAL_OK)
+            {
+                return false;
+            }
         }
         return true;
     }
+
+    bool ChangeSettings(const Communication::SerialPort &conf)
+    {
+        HAL_UART_Abort_IT(m_hnd_port);
+        HAL_UART_DeInit(m_hnd_port);
+
+        m_hnd_port->Init.BaudRate = conf.BaudRate;
+        return (HAL_UART_Init(m_hnd_port) == HAL_OK);
+    }
+
     void SendRequestPacket(int id)
     {
         auto cmd = MakeRequestPacket(302);
 
-        if (auto size = strlen(cmd); size > 0)
+        if (auto size = std::strlen(cmd); size > 0)
             SendByte(cmd, size);
     }
+
     void UpdateModel(const char *data, Configurations &conf)
     {
         protocolInstance.UpdateModel(data, conf);
     }
+
     void SendResponsePacket(int id, char *buf)
     {
         auto statusOk = MakeResponsePacket(id, buf);
@@ -68,18 +83,22 @@ public:
             SendByte(buf, size);
         }
     }
+
     const char *MakeRequestPacket(int id)
     {
         return protocolInstance.MakeRequestPacket(id);
     }
+
     bool MakeResponsePacket(int id, char *buf)
     {
         return protocolInstance.MakeResponsePacket(id, buf);
     }
+
     bool CheckCrc(const char *data, const char crc)
     {
         return protocolInstance.CheckCrc(data, crc);
     }
+
     void DataRdy()
     {
         m_msg_buffer.write((T *)m_rx_buffer, m_buf_size);
@@ -90,10 +109,12 @@ public:
     {
         HAL_UART_Transmit(m_hnd_port, (const uint8_t *)data, size, m_timeout);
     }
+
     T *GetString(T delimiter)
     {
         return m_msg_buffer.getString(delimiter);
     }
+
     const T Read()
     {
         return m_msg_buffer.read();
@@ -104,5 +125,5 @@ private:
     int m_timeout;
     UART_HandleTypeDef *m_hnd_port;
     size_t m_buf_size;
-    uint8_t m_rx_buffer[msg_size];
+    uint8_t m_rx_buffer[MSG_SIZE];
 };

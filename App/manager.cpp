@@ -11,7 +11,7 @@
 
 #include "uart_device.h"
 #include "protocolbase.h"
-// #define debug
+#define debug
 #ifdef debug
 #include "task.h"
 #endif
@@ -23,26 +23,64 @@ portData<uart_primary_sensor> primary_sensor(&huart2);
 portData<uart_debug_port> debug_port(&huart3);
 portData<uart_PC> PC_port(&huart1);
 
-uart_device<ProtocolBase::ProtocolId::SC400, char> port_primary_sensor(primary_sensor.hnd, 45);
+UartDevice<ProtocolBase::ProtocolId::SC400, char> port_primary_sensor(primary_sensor.hnd, 45);
 // uart_device<uart_secondary_sensor> port_secondary_sensor;
-uart_device<ProtocolBase::ProtocolId::NONE, char> port_debug(debug_port.hnd, 1);
-uart_device<ProtocolBase::ProtocolId::SC400, char> port_PC(PC_port.hnd, 20);
+UartDevice<ProtocolBase::ProtocolId::NONE, char> port_debug(debug_port.hnd, 1);
+UartDevice<ProtocolBase::ProtocolId::SC400, char> port_PC(PC_port.hnd, 20);
 //-------------------------------------------------------------------------------
 
 SensorData sensor_data;
 
 osThreadId_t MgrThreadID;
 
+template <typename T>
+void processData(UartDevice<ProtocolBase::ProtocolId::SC400, char> &port, char delimiter);
+
+template <>
+void processData<uart_primary_sensor>(UartDevice<ProtocolBase::ProtocolId::SC400, char> &port, const char delimiter)
+{
+    port.SendRequestPacket(302);
+    osDelay(500);
+    if (const char *inp = port.GetString(delimiter); inp)
+    {
+        const char crc = port.Read();
+        if (*inp && port.CheckCrc(inp, crc))
+        {
+            logMessage("New packet from gauge received\n\r", true);
+            Configurations newConfig;
+            port.UpdateModel(inp, newConfig);
+            sensor_data.updateData(newConfig);
+        }
+    }
+}
+
+template <>
+void processData<uart_PC>(UartDevice<ProtocolBase::ProtocolId::SC400, char> &port, const char delimiter)
+{
+    if (const char *inp = port.GetString(delimiter); inp)
+    {
+        const char crc = port.Read();
+        if (*inp && port.CheckCrc(inp, crc))
+        {
+            auto id = atoi(inp + 1);
+            logMessage("New packet from PC received\n\r", true);
+            char buf[100];
+            sensor_data.GetValues<sc400>(302, buf);
+            port.SendResponsePacket(id, buf);
+        }
+    }
+}
+
 void managerThread(void *argument)
 {
     (void)argument;
 
-    port_primary_sensor.Init();
+    port_primary_sensor.Init(sensor_data.getPortSettings<uart_primary_sensor>());
 
     // port_secondary_sensor.init(secondary_sensor.hnd, 50, 10);
-    port_debug.Init();
+    port_debug.Init(sensor_data.getPortSettings<uart_secondary_sensor>());
 
-    port_PC.Init();
+    port_PC.Init(sensor_data.getPortSettings<uart_PC>());
 
 #ifdef debug
     UBaseType_t uxHighWaterMark;
@@ -52,64 +90,69 @@ void managerThread(void *argument)
     while (1)
     {
         // get data from gauge
-        port_primary_sensor.SendRequestPacket(302);
-        osDelay(500);
-        if (const char *inp = port_primary_sensor.GetString(Sc400::ETX); inp)
-        {
-            const char crc = port_primary_sensor.Read();
+        processData<uart_primary_sensor>(port_primary_sensor, Sc400::ETX);
 
-            if (*inp)
-                if (port_primary_sensor.CheckCrc(inp, crc))
-                {
-                    logMessage("new packet from gauge received\n\r", true);
+        // response to query from PC
+        processData<uart_PC>(port_PC, 0x3);
 
-                    Configurations newConfig;
-                    port_primary_sensor.UpdateModel(inp, newConfig);
-                    sensor_data.updateData(newConfig);
-                }
-        }
-        if (const char *inp = port_PC.GetString(0x3); inp)
-        {
-            const char crc = port_PC.Read();
-
-            if (*inp)
-                if (port_PC.CheckCrc(inp, crc))
-                {
-                    auto id = atoi(inp + 1);
-                    logMessage("new packet from PC received\n\r", true);
-                    char buf[100];
-                    sensor_data.GetValues<sc400>(302, buf);
-                    port_PC.SendResponsePacket(id, buf);
-                }
-        }
 #ifdef debug
         uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
 #endif
     }
 }
+
+void uart_setPortConfiguration(uint8_t port, const Communication::SerialPort &setting)
+{
+    switch (port)
+    {
+    case 1:
+        sensor_data.setPortSettings<uart_primary_sensor>(setting);
+        break;
+    case 2:
+        sensor_data.setPortSettings<uart_secondary_sensor>(setting);
+        break;
+    case 3:
+        sensor_data.setPortSettings<uart_PC>(setting);
+        break;
+    default:
+        // Handle invalid port number (optional)
+        break;
+    }
+}
+
 void console_putchar(const char data)
 {
     if (data != '\0')
         port_debug.SendByte(&data, 1);
 }
+
 void console_putstr(const char *data, std::size_t size)
 {
     if ((size > 0) && (*data != '\0'))
         port_debug.SendByte(data, size);
 }
+
 char *console_getcommand()
 {
     return port_debug.GetString('\r');
 }
+
 void console_dumpmodel()
 {
     sensor_data.dumpModel();
 }
+
+void console_dumpports()
+{
+    sensor_data.dumpPorts();
+}
+
 void initializeManager(osThreadAttr_t thread_attr)
 {
     // Create the manager thread
     MgrThreadID = osThreadNew(managerThread, NULL, &thread_attr);
 }
+
 extern "C" void sensorRxdData(UART_HandleTypeDef *huart)
 {
     if (huart == primary_sensor.hnd)

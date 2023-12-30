@@ -1,4 +1,6 @@
 #pragma once
+#include <array>
+
 namespace utility
 {
     class Cli
@@ -8,13 +10,18 @@ namespace utility
         {
             HELP,
             DUMP_MODEL,
+            DUMP_PORTS,
+            SET_PORT,
             NUM_COMMANDS
         };
-        static const int max_cmd_len = 20;
-        static constexpr char cmdlist[][max_cmd_len] = {"help", "dump model"};
+        static const int MAX_CMD_LEN = 20;
+        static const int MAX_TOKENS = 10;
+        char *tokens[MAX_TOKENS];
+        static constexpr std::array<const char *, NUM_COMMANDS> cmdlist = {"help", "dumpmodel", "dumpports", "setport"};
+        int parseInput(const char *input);
 
     public:
         Cli() = default;
-        static void processCommand(const char *inp);
+        void processCommand(const char *inp);
     };
 }

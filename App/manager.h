@@ -2,28 +2,12 @@
 #include <cstddef>
 #include "stm32f1xx_hal.h"
 #include "cmsis_os.h"
+#include "model.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
-    struct uart_debug_port
-    {
-    };
-    struct uart_primary_sensor
-    {
-    };
-    struct uart_secondary_sensor
-    {
-    };
-    struct uart_PC
-    {
-    };
-
-    struct sc400
-    {
-    };
 
     void initializeManager(osThreadAttr_t thread_attr);
     extern "C" void sensorRxdData(UART_HandleTypeDef *huart);
@@ -31,6 +15,8 @@ extern "C"
     void console_putstr(const char *data, std::size_t size);
     char *console_getcommand();
     void console_dumpmodel();
+    void console_dumpports();
+    void uart_setPortConfiguration(uint8_t port, const Communication::SerialPort &setting);
 
 #ifdef __cplusplus
 }
