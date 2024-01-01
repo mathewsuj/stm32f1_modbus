@@ -31,14 +31,12 @@ void SensorData::dumpPorts()
 }
 void SensorData::formatValueInBuffer(char *buf, const DataDef &dataDef, int value)
 {
-    std::snprintf(buf + dataDef.pos, 6, "%05d", value);
+    char format[5] = "%05d";
+    if (dataDef.size != 5)
+        format[2] = '0' + dataDef.size;
+    std::snprintf(buf + dataDef.pos, dataDef.size + 1, format, value);
 }
 
-void SensorData::formatSignedValueInBuffer(char *buf, const DataDef &dataDef, int value)
-{
-    *(buf + dataDef.pos) = (value > 0) ? '+' : '-';
-    formatValueInBuffer(buf, dataDef, std::abs(value));
-}
 template <>
 void SensorData::GetValues<sc400>(int type, char *buf)
 {
@@ -47,12 +45,16 @@ void SensorData::GetValues<sc400>(int type, char *buf)
     *(buf + StatusMeanValue.pos) = m_gauge_data.status_mean_value + '0';
     formatValueInBuffer(buf, MeanValue, m_gauge_data.mean_value);
 
-    formatSignedValueInBuffer(buf, Deviation, m_gauge_data.deviation);
+    *(buf + SignDeviation.pos) = (m_gauge_data.deviation > 0) ? '+' : '-';
+    formatValueInBuffer(buf, Deviation, m_gauge_data.deviation);
 
     formatValueInBuffer(buf, BlueDiameter, m_gauge_data.blue_diameter);
     formatValueInBuffer(buf, MagentaDiameter, m_gauge_data.magenta_diameter);
     formatValueInBuffer(buf, Ovality, m_gauge_data.ovality);
 
-    formatSignedValueInBuffer(buf, PositionAxisBlue, m_gauge_data.position_axis_blue);
-    formatSignedValueInBuffer(buf, PositionAxisMagenta, m_gauge_data.position_axis_magenta);
+    *(buf + SignPositionAxisBlue.pos) = (m_gauge_data.position_axis_blue > 0) ? '+' : '-';
+    formatValueInBuffer(buf, PositionAxisBlue, m_gauge_data.position_axis_blue);
+
+    *(buf + SignPositionAxisMagenta.pos) = (m_gauge_data.position_axis_magenta > 0) ? '+' : '-';
+    formatValueInBuffer(buf, PositionAxisMagenta, m_gauge_data.position_axis_magenta);
 }

@@ -81,10 +81,14 @@ void managerThread(void *argument)
     port_debug.Init(sensor_data.getPortSettings<uart_secondary_sensor>());
 
     port_PC.Init(sensor_data.getPortSettings<uart_PC>());
+    osDelay(100);
 
 #ifdef debug
-    UBaseType_t uxHighWaterMark;
+    UBaseType_t uxHighWaterMark, minWaterMark;
     uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+    minWaterMark = uxHighWaterMark;
+    const char *taskName = osThreadGetName(osThreadGetId());
+    debugLog("HighWaterMark - %s: %ld\r\n", taskName, minWaterMark);
 #endif
 
     while (1)
@@ -97,6 +101,11 @@ void managerThread(void *argument)
 
 #ifdef debug
         uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+        if (minWaterMark > uxHighWaterMark)
+        {
+            minWaterMark = uxHighWaterMark;
+            debugLog("HighWaterMark - %s: %ld\r\n", taskName, minWaterMark);
+        }
 #endif
     }
 }

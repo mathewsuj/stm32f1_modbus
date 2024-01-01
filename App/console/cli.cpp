@@ -61,7 +61,11 @@ void Cli::processCommand(const char *inp)
                 }
 
                 return;
-
+            case SOFT_RESET:
+                logMessage("\n\rResetting...\n\r", false);
+                __disable_irq();
+                NVIC_SystemReset();
+                break;
             default:
                 logMessage("\n\rcommand not found!\n\r", false);
             }

@@ -59,10 +59,16 @@ void logMessage(const char *message, int timestamp_enabled)
 void consoleThreadRx(void *argument)
 {
     (void)argument;
+    osDelay(100);
+
 #ifdef debug
-    UBaseType_t uxHighWaterMark;
+    UBaseType_t uxHighWaterMark, minWaterMark;
     uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+    minWaterMark = uxHighWaterMark;
+    const char *taskName = osThreadGetName(osThreadGetId());
+    debugLog("HighWaterMark - %s: %ld\r\n", taskName, minWaterMark);
 #endif
+
     while (1)
     {
         if (const char *inp = console_getcommand(); inp)
@@ -73,6 +79,11 @@ void consoleThreadRx(void *argument)
         osDelay(100);
 #ifdef debug
         uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+        if (minWaterMark > uxHighWaterMark)
+        {
+            minWaterMark = uxHighWaterMark;
+            debugLog("HighWaterMark - %s: %ld\r\n", taskName, minWaterMark);
+        }
 #endif
     }
 }
