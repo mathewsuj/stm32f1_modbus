@@ -332,7 +332,7 @@ static void MX_GPIO_Init(void)
 __weak void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
-
+  (void)argument;
   /* Infinite loop */
   for (;;)
   {

@@ -5,12 +5,14 @@
 #include <cstdarg>
 #include <string>
 
+#include "cmsis_os.h"
+
 #include "manager.h"
 #include "model.h"
 #include "console.h"
-
 #include "uart_device.h"
 #include "protocolbase.h"
+
 #define debug
 #ifdef debug
 #include "task.h"
@@ -65,7 +67,7 @@ void processData<uart_PC>(UartDevice<ProtocolBase::ProtocolId::SC400, char> &por
             auto id = atoi(inp + 1);
             logMessage("New packet from PC received\n\r", true);
             char buf[100];
-            sensor_data.GetValues<sc400>(302, buf);
+            sensor_data.GetValues<sc400>(buf);
             port.SendResponsePacket(id, buf);
         }
     }
@@ -156,10 +158,14 @@ void console_dumpports()
     sensor_data.dumpPorts();
 }
 
-void initializeManager(osThreadAttr_t thread_attr)
+void initializeManager()
 {
+    osThreadAttr_t thread_attr_task;
+    thread_attr_task.name = "managerTask";
+    thread_attr_task.stack_size = 128 * 9;
+    thread_attr_task.priority = (osPriority_t)osPriorityNormal;
     // Create the manager thread
-    MgrThreadID = osThreadNew(managerThread, NULL, &thread_attr);
+    MgrThreadID = osThreadNew(managerThread, NULL, &thread_attr_task);
 }
 
 extern "C" void sensorRxdData(UART_HandleTypeDef *huart)

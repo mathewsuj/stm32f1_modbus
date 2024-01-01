@@ -62,7 +62,7 @@ public:
 
     void SendRequestPacket(int id)
     {
-        auto cmd = MakeRequestPacket(302);
+        auto cmd = MakeRequestPacket(id);
 
         if (auto size = std::strlen(cmd); size > 0)
             SendByte(cmd, size);
@@ -122,8 +122,8 @@ public:
 
 private:
     CircularBuffer<T, LOG_SIZE> m_msg_buffer;
-    int m_timeout;
     UART_HandleTypeDef *m_hnd_port;
     size_t m_buf_size;
+    int m_timeout;
     uint8_t m_rx_buffer[MSG_SIZE];
 };

@@ -96,6 +96,6 @@ private:
     int head;
     int tail;
     int size;
-    int commandIndex;
+    std::size_t commandIndex;
     bool commandFound;
 };

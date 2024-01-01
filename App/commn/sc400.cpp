@@ -83,7 +83,6 @@ const char *Sc400::MakeRequestPacket(int reqid)
 }
 bool Sc400::UpdateModel(const char *data, Configurations &conf)
 {
-    int index = 1;
     conf.status_mean_value = *(data + StatusMeanValue.pos) - '0'; // skip STX and Command Id bytes
 
     auto parseInteger = [](const char *begin, std::size_t size, auto &value) -> bool

@@ -38,10 +38,10 @@ void SensorData::formatValueInBuffer(char *buf, const DataDef &dataDef, int valu
 }
 
 template <>
-void SensorData::GetValues<sc400>(int type, char *buf)
+void SensorData::GetValues<sc400>(char *buf)
 {
     using namespace sikora;
-    int index = 1;
+
     *(buf + StatusMeanValue.pos) = m_gauge_data.status_mean_value + '0';
     formatValueInBuffer(buf, MeanValue, m_gauge_data.mean_value);
 

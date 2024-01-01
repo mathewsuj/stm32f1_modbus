@@ -61,6 +61,12 @@ target_compile_options(
     "$<$<AND:$<NOT:$<CONFIG:Debug>>,$<COMPILE_LANGUAGE:CXX>>:>"
     "$<$<CONFIG:Debug>:-mcpu=cortex-m3>"
     "$<$<NOT:$<CONFIG:Debug>>:-mcpu=cortex-m3>"
+    "-Wall"
+    "-Wextra"
+    "-Wpedantic"
+    "-Wcomment"
+    "-Wsign-compare"
+    "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:CXX>>:-Wredundant-decls>"
 )
 
 target_link_libraries(

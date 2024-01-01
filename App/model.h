@@ -94,7 +94,7 @@ public:
     void formatValueInBuffer(char *buf, const DataDef &dataDef, int value);
     void formatSignedValueInBuffer(char *buf, const DataDef &dataDef, int value);
     template <typename protocol>
-    void GetValues(int type, char *buf);
+    void GetValues(char *buf);
 
     template <typename Port>
     Communication::SerialPort getPortSettings() const

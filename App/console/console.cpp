@@ -5,6 +5,8 @@
 #include <cstdarg>
 #include <string>
 
+#include "cmsis_os.h"
+
 #include "console.h"
 #include "circularbuf.h"
 #include "model.h"
@@ -48,8 +50,8 @@ void logMessage(const char *message, int timestamp_enabled)
     char s[LOG_SIZE] = {'\0'};
     if (timestamp_enabled)
     {
-        auto millis = osKernelGetTickCount();
-        std::sprintf(s, "%d: ", millis);
+        uint32_t millis = osKernelGetTickCount();
+        std::sprintf(s, "%ld: ", millis);
     }
     std::strcat(s, message);
 
@@ -87,12 +89,17 @@ void consoleThreadRx(void *argument)
 #endif
     }
 }
-void initializeLogger(osThreadAttr_t thread_attr_rx)
+void initializeLogger()
 {
 
-    osMutexAttr_t mutex_attr = {0};
-    logFormatMutex = osMutexNew(&mutex_attr);
+    // osMutexAttr_t mutex_attr = {0};
+    logFormatMutex = osMutexNew(NULL);
+
+    osThreadAttr_t thread_attr_task{};
+    thread_attr_task.name = "consoleTask";
+    thread_attr_task.stack_size = 128 * 9;
+    thread_attr_task.priority = (osPriority_t)osPriorityNormal;
 
     // Create the console thread
-    thr_console_rx = osThreadNew(consoleThreadRx, NULL, &thread_attr_rx);
+    thr_console_rx = osThreadNew(consoleThreadRx, NULL, &thread_attr_task);
 }

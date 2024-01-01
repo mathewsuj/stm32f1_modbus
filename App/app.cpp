@@ -9,22 +9,11 @@
 
 extern "C" void StartDefaultTask(void *argument)
 {
+  (void)argument;
 
-  osThreadAttr_t thread_attr_consoleRx = {
-      .name = "consoleTask",
-      .stack_size = 128 * 9,
-      .priority = (osPriority_t)osPriorityNormal,
-  };
+  initializeLogger();
 
-  osThreadAttr_t thread_attr_manager = {
-      .name = "managerTask",
-      .stack_size = 128 * 9,
-      .priority = (osPriority_t)osPriorityNormal,
-  };
-
-  initializeLogger(thread_attr_consoleRx);
-
-  initializeManager(thread_attr_manager);
+  initializeManager();
 
   osDelay(100);
   logMessage("TVG CON 0.10v\r\n", 0);
