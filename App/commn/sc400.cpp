@@ -18,7 +18,7 @@ bool Sc400::CheckCrc(const char *data, const char crc)
 
     return crc == bcc;
 }
-bool Sc400::MakeResponsePacket(int reqid, char *payload)
+bool Sc400::MakeResponsePacket(const int reqid, char *payload)
 {
     static_assert(StatusMeanValue.pos == 4);
     if (reqid > 999)

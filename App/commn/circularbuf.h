@@ -58,7 +58,7 @@ public:
 
         return T{};
     }
-    T *getString(T delimiter)
+    T *getString(const T delimiter)
     {
         for (; (size != 0); tail = (tail + 1) % Size, size--)
         {
@@ -83,7 +83,7 @@ public:
         }
         return nullptr;
     }
-    T *getCommand()
+    const T *getCommand()
     {
         commandFound = false;
         commandIndex = 0;

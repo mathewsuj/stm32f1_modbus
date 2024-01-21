@@ -9,12 +9,12 @@ public:
         (void)crc;
         return true;
     }
-    const char *MakeRequestPacket(int reqid) override
+    const char *MakeRequestPacket(const int reqid) override
     {
         (void)reqid;
         return nullptr;
     }
-    bool MakeResponsePacket(int reqid, char *buf) override
+    bool MakeResponsePacket(const int reqid, char *buf) override
     {
         (void)reqid;
         (void)buf;

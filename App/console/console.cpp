@@ -21,6 +21,7 @@
 namespace
 {
     constexpr size_t LOG_SIZE = 100;
+    const char BACKSPACE = 127;
 }
 
 osMutexId_t logFormatMutex;
@@ -45,7 +46,7 @@ void debugLog(const char *format, ...)
     va_end(args);
 }
 
-void logMessage(const char *message, int timestamp_enabled)
+void logMessage(const char *message, const int timestamp_enabled)
 {
     char s[LOG_SIZE] = {'\0'};
     if (timestamp_enabled)
@@ -57,7 +58,28 @@ void logMessage(const char *message, int timestamp_enabled)
 
     console_putstr(&s[0], std::strlen(s));
 }
-
+void cleanup_string(char *str)
+{
+    int idx = 0;
+    int newIdx = 0;
+    while (str[idx])
+    {
+        if (str[idx] == BACKSPACE)
+        {
+            newIdx -= 2;
+        }
+        else
+        {
+            if (idx != newIdx)
+                str[newIdx] = str[idx];
+        }
+        newIdx++;
+        if (newIdx < 0)
+            newIdx = 0;
+        idx++;
+    }
+    str[newIdx] = '\0';
+}
 void consoleThreadRx(void *argument)
 {
     (void)argument;
@@ -73,8 +95,9 @@ void consoleThreadRx(void *argument)
 
     while (1)
     {
-        if (const char *inp = console_getcommand(); inp)
+        if (char *inp = console_getcommand(); inp)
         {
+            cleanup_string(inp);
             if (*inp)
                 cli.processCommand(inp);
         }

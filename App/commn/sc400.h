@@ -20,9 +20,9 @@ public:
 
     bool CheckCrc(const char *data, const char crc) override;
 
-    const char *MakeRequestPacket(int reqid) override;
+    const char *MakeRequestPacket(const int reqid) override;
 
-    bool MakeResponsePacket(int reqid, char *payload) override;
+    bool MakeResponsePacket(const int reqid, char *payload) override;
 
     bool UpdateModel(const char *data, Configurations &conf);
 

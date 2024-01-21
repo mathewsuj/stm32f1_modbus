@@ -7,7 +7,7 @@ extern "C"
 
     void initializeLogger();
     void debugLog(const char *format, ...);
-    void logMessage(const char *message, int timestamp_enabled);
+    void logMessage(const char *message, const int timestamp_enabled);
 
 #ifdef __cplusplus
 }

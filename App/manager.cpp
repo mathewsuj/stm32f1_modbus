@@ -112,7 +112,7 @@ void managerThread(void *argument)
     }
 }
 
-void uart_setPortConfiguration(uint8_t port, const Communication::SerialPort &setting)
+void uart_setPortConfiguration(const uint8_t port, const Communication::SerialPort &setting)
 {
     switch (port)
     {
@@ -137,7 +137,7 @@ void console_putchar(const char data)
         port_debug.SendByte(&data, 1);
 }
 
-void console_putstr(const char *data, std::size_t size)
+void console_putstr(const char *data, const std::size_t size)
 {
     if ((size > 0) && (*data != '\0'))
         port_debug.SendByte(data, size);
@@ -168,7 +168,7 @@ void initializeManager()
     MgrThreadID = osThreadNew(managerThread, NULL, &thread_attr_task);
 }
 
-extern "C" void sensorRxdData(UART_HandleTypeDef *huart)
+extern "C" void sensorRxdData(const UART_HandleTypeDef *huart)
 {
     if (huart == primary_sensor.hnd)
         port_primary_sensor.DataRdy();

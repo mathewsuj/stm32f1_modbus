@@ -73,7 +73,7 @@ public:
         protocolInstance.UpdateModel(data, conf);
     }
 
-    void SendResponsePacket(int id, char *buf)
+    void SendResponsePacket(const int id, char *buf)
     {
         auto statusOk = MakeResponsePacket(id, buf);
 
@@ -84,12 +84,12 @@ public:
         }
     }
 
-    const char *MakeRequestPacket(int id)
+    const char *MakeRequestPacket(const int id)
     {
         return protocolInstance.MakeRequestPacket(id);
     }
 
-    bool MakeResponsePacket(int id, char *buf)
+    bool MakeResponsePacket(const int id, char *buf)
     {
         return protocolInstance.MakeResponsePacket(id, buf);
     }
