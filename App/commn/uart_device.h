@@ -39,7 +39,7 @@ class UartDevice
 
 public:
     UartDevice(UART_HandleTypeDef *hnd_port, size_t buf_size, int timeout = DEFAULT_TIMEOUT) : m_hnd_port(hnd_port), m_buf_size(buf_size), m_timeout(timeout) {}
-    inline bool Init(const Communication::SerialPort &conf)
+    inline bool Init(const db::Communication::SerialPort &conf)
     {
         if (ChangeSettings(conf))
         {
@@ -51,7 +51,7 @@ public:
         return true;
     }
 
-    bool ChangeSettings(const Communication::SerialPort &conf)
+    bool ChangeSettings(const db::Communication::SerialPort &conf)
     {
         HAL_UART_Abort_IT(m_hnd_port);
         HAL_UART_DeInit(m_hnd_port);
@@ -68,7 +68,7 @@ public:
             SendByte(cmd, size);
     }
 
-    void UpdateModel(const char *data, Configurations &conf)
+    void UpdateModel(const char *data, db::SensorData &conf)
     {
         protocolInstance.UpdateModel(data, conf);
     }

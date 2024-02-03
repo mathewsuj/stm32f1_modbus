@@ -7,7 +7,7 @@
 #include "model.h"
 
 #include "protocolbase.h"
-using namespace sikora;
+using namespace db::sikora;
 
 class Sc400 : public ProtocolBase
 {
@@ -24,7 +24,7 @@ public:
 
     bool MakeResponsePacket(const int reqid, char *payload) override;
 
-    bool UpdateModel(const char *data, Configurations &conf);
+    bool UpdateModel(const char *data, db::SensorData &conf);
 
 private:
     char m_tx_buffer[TX_BUFFER_SIZE];

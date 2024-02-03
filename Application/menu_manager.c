@@ -1,25 +1,19 @@
+#include "menu_manager.h"
+#include "c_intf.h"
 #include "cmsis_os.h"
 #include "console.h"
-#include "manager.h"
-#include "menu_manager.h"
 
 #define debug
 #ifdef debug
 #include "task.h"
 #endif
 
-extern "C" void StartDefaultTask(void *argument)
+osThreadId_t thr_menumgr;
+
+void MenuMgrThread(void *argument)
 {
   (void)argument;
-
-  initializeLogger();
-
-  initializeManager();
-
-  initializeMenuManager();
-
   osDelay(100);
-  logMessage("TVG CON 0.10v\r\n", 0);
 
 #ifdef debug
   UBaseType_t uxHighWaterMark, minWaterMark;
@@ -29,9 +23,11 @@ extern "C" void StartDefaultTask(void *argument)
   debugLog("HighWaterMark - %s: %ld\r\n", taskName, minWaterMark);
 #endif
 
-  /* Infinite loop */
-  for (;;)
+  while (1)
   {
+    uint16_t val = getDbValue(PRIMARY_SENSOR_MEAN_VALUE);
+    debugLog("sensor: mean value: %d\r\n", val);
+    setDbValue(PRIMARY_SENSOR_MEAN_VALUE, val + 1);
     osDelay(1000);
 #ifdef debug
     uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
@@ -42,4 +38,16 @@ extern "C" void StartDefaultTask(void *argument)
     }
 #endif
   }
+}
+void initializeMenuManager()
+{
+
+  const osThreadAttr_t thread_attr_task = {
+      .name = "menuMgrTask",
+      .stack_size = 128 * 9,
+      .priority = (osPriority_t)osPriorityNormal,
+  };
+
+  // Create the  thread
+  thr_menumgr = osThreadNew(MenuMgrThread, NULL, &thread_attr_task);
 }

@@ -16,7 +16,7 @@ target_compile_definitions(
 
 target_include_directories(
     ${TARGET_NAME} PRIVATE
-    "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>>:${PROJECT_SOURCE_DIR}/Core\\Inc>"
+    "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>>:${PROJECT_SOURCE_DIR}/Core/Inc>"
     "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>>:${PROJECT_SOURCE_DIR}/Drivers\\STM32F1xx_HAL_Driver\\Inc\\Legacy>"
     "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>>:${PROJECT_SOURCE_DIR}/Drivers\\STM32F1xx_HAL_Driver\\Inc>"
     "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>>:${PROJECT_SOURCE_DIR}/Middlewares\\Third_Party\\FreeRTOS\\Source\\include>"
@@ -42,6 +42,10 @@ target_include_directories(
     "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:CXX>>:${PROJECT_SOURCE_DIR}/App>"
     "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:CXX>>:${PROJECT_SOURCE_DIR}/App\\commn>"
     "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:CXX>>:${PROJECT_SOURCE_DIR}/App\\console>"
+    "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:CXX>>:${PROJECT_SOURCE_DIR}/Application>"
+    "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>>:${PROJECT_SOURCE_DIR}/Application>"
+    "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>>:${PROJECT_SOURCE_DIR}/App>"
+    "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>>:${PROJECT_SOURCE_DIR}/App\\console>"
 )
 
 target_compile_options(
@@ -90,6 +94,7 @@ target_sources(
     ${TARGET_NAME} PRIVATE
     "Core\\Src\\freertos.c"
     "Core\\Src\\main.c"
+    "Core\\Src\\eeprom.c"
     "Core\\Src\\stm32f1xx_hal_msp.c"
     "Core\\Src\\stm32f1xx_hal_timebase_tim.c"
     "Core\\Src\\stm32f1xx_it.c"
@@ -129,6 +134,8 @@ target_sources(
     "App\\console\\console.cpp"
     "App\\manager.cpp"
     "App\\model.cpp"
+    "App\\c_intf.cpp"
+    "Application\\menu_manager.c"
 )
 
 add_custom_command(

@@ -1,9 +1,12 @@
 set(WINDOWS_ST_CLT_PATH "C:/ST/STM32CubeCLT/STM32CubeCLT/GNU-tools-for-STM32/bin/")
+#set(WINDOWS_GNU_PATH "C:/Program Files (x86)/Arm GNU Toolchain arm-none-eabi/13.2 Rel1/bin")
 set(MAC_ST_CLT_PATH "/opt/ST/STM32CubeCLT/GNU-tools-for-STM32/bin/")
 if(EXISTS "${WINDOWS_ST_CLT_PATH}")
     set(TOOLCHAIN_DIRECTORIES ${WINDOWS_ST_CLT_PATH})
 elseif(EXISTS "${MAC_ST_CLT_PATH}")
     set(TOOLCHAIN_DIRECTORIES ${MAC_ST_CLT_PATH})
+elseif(EXISTS "${WINDOWS_GNU_PATH}")
+    set(TOOLCHAIN_DIRECTORIES ${WINDOWS_GNU_PATH})
 else()
     # Try to find an STM32CubeIDE installation to use for the toolchain.
     file(GLOB TOOLCHAIN_DIRECTORIES

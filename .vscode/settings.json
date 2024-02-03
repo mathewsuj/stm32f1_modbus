@@ -1,6 +1,7 @@
 {
   "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
   "cmake.configureOnOpen": true,
+  "editor.formatOnSave": true,
   "files.associations": {
     "cmsis_os.h": "c",
     "main.h": "c",
@@ -62,6 +63,13 @@
     "xtr1common": "cpp",
     "xmemory": "cpp",
     "ctime": "cpp",
-    "iomanip": "cpp"
+    "iomanip": "cpp",
+    "chrono": "cpp",
+    "condition_variable": "cpp",
+    "ratio": "cpp",
+    "mutex": "cpp",
+    "semaphore": "cpp",
+    "stop_token": "cpp",
+    "thread": "cpp"
   }
 }

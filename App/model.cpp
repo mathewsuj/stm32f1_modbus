@@ -1,60 +1,87 @@
+#include <cmath>
 #include <cstdint>
 #include <cstdio>
-#include <cmath>
-#include "model.h"
+
 #include "console.h"
 #include "manager.h"
+#include "model.h"
 
-void SensorData::dumpModel()
+using namespace db;
+
+osMutexId_t TvgDatabase::mutex = osMutexNew(NULL);
+
+uint16_t EEpromLocs[NO_EEPROM_LOC];
+
+void TvgDatabase::dumpModel()
 {
-    debugLog("Gauge Data Dump:\r\n");
-    debugLog("gauge data mean value: %d\r\n", m_gauge_data.status_mean_value);
-    debugLog("Status Mean Value: %d\r\n", m_gauge_data.status_mean_value);
-    debugLog("Mean Value: %d\r\n", m_gauge_data.mean_value);
-    debugLog("Deviation: %d\r\n", m_gauge_data.deviation);
-    debugLog("Blue Diameter:  %d\r\n", m_gauge_data.blue_diameter);
-    debugLog("Magenta Diameter:  %d\r\n", m_gauge_data.magenta_diameter);
-    debugLog("Ovality:  %d\r\n", m_gauge_data.ovality);
-    debugLog("Position Axis Blue:  %d\r\n", m_gauge_data.position_axis_blue);
-    debugLog("Position Axis Magenta:  %d\r\n", m_gauge_data.position_axis_magenta);
+  int idx = 0;
+  debugLog("Gauge Data Dump:\r\n");
+  debugLog("gauge data mean value: %d\r\n",
+           tvgdb.sensor_data[idx].status_mean_value.getValue());
+  debugLog("Status Mean Value: %d\r\n",
+           tvgdb.sensor_data[idx].status_mean_value.getValue());
+  debugLog("Mean Value: %d\r\n", tvgdb.sensor_data[idx].mean_value.getValue());
+  debugLog("Deviation: %d\r\n", tvgdb.sensor_data[idx].deviation.getValue());
+  debugLog("Blue Diameter:  %d\r\n",
+           tvgdb.sensor_data[idx].blue_diameter.getValue());
+  debugLog("Magenta Diameter:  %d\r\n",
+           tvgdb.sensor_data[idx].ovality.getValue());
+  debugLog("Position Axis Blue:  %d\r\n",
+           tvgdb.sensor_data[idx].position_axis_blue.getValue());
+  debugLog("Position Axis Magenta:  %d\r\n",
+           tvgdb.sensor_data[idx].position_axis_magenta.getValue());
 }
-void SensorData::printPortSettings(const char *portName, const Communication::SerialPort &port)
+void TvgDatabase::printPortSettings(const char *portName,
+                                    const Communication::SerialPort &port)
 {
-    debugLog("%s: %d, %d, %d\r\n", portName, port.BaudRate, static_cast<int>(port.Parity), port.StopBits);
+  int baudrate = port.BaudRate;
+  int parity =
+      static_cast<int>(static_cast<Communication::ParityType>(port.Parity));
+  int stopbits = port.StopBits;
+  debugLog("%s: %d, %d, %d\r\n", portName, baudrate, parity, stopbits);
 }
-void SensorData::dumpPorts()
+void TvgDatabase::dumpPorts()
 {
-    debugLog("Port Settings:\r\n");
-    printPortSettings("Primary Sensor Port", m_settings.PrimaryPort);
-    printPortSettings("Secondary Sensor Port", m_settings.SecondaryPort);
-    printPortSettings("PC Port", m_settings.PCPort);
+  debugLog("Port Settings:\r\n");
+  printPortSettings("Primary Sensor Port", tvgdb.uart_port[0]);
+  printPortSettings("Secondary Sensor Port", tvgdb.uart_port[1]);
+  printPortSettings("PC Port", tvgdb.uart_port[2]);
 }
-void SensorData::formatValueInBuffer(char *buf, const DataDef &dataDef, int value)
+void TvgDatabase::formatValueInBuffer(char *buf, const DataDef &dataDef,
+                                      int value)
 {
-    char format[5] = "%05d";
-    if (dataDef.size != 5)
-        format[2] = '0' + dataDef.size;
-    std::snprintf(buf + dataDef.pos, dataDef.size + 1, format, value);
+  char format[5] = "%05d";
+  if (dataDef.size != 5)
+    format[2] = '0' + dataDef.size;
+  std::snprintf(buf + dataDef.pos, dataDef.size + 1, format, value);
 }
 
 template <>
-void SensorData::GetValues<sc400>(char *buf)
+void TvgDatabase::GetValues<sc400>(char *buf)
 {
-    using namespace sikora;
+  using namespace sikora;
 
-    *(buf + StatusMeanValue.pos) = m_gauge_data.status_mean_value + '0';
-    formatValueInBuffer(buf, MeanValue, m_gauge_data.mean_value);
+  int idx = 0;
 
-    *(buf + SignDeviation.pos) = (m_gauge_data.deviation > 0) ? '+' : '-';
-    formatValueInBuffer(buf, Deviation, m_gauge_data.deviation);
+  *(buf + StatusMeanValue.pos) = tvgdb.sensor_data[idx].status_mean_value + '0';
+  formatValueInBuffer(buf, MeanValue, tvgdb.sensor_data[idx].mean_value);
 
-    formatValueInBuffer(buf, BlueDiameter, m_gauge_data.blue_diameter);
-    formatValueInBuffer(buf, MagentaDiameter, m_gauge_data.magenta_diameter);
-    formatValueInBuffer(buf, Ovality, m_gauge_data.ovality);
+  *(buf + SignDeviation.pos) =
+      (tvgdb.sensor_data[idx].deviation > 0) ? '+' : '-';
+  formatValueInBuffer(buf, Deviation, tvgdb.sensor_data[idx].deviation);
 
-    *(buf + SignPositionAxisBlue.pos) = (m_gauge_data.position_axis_blue > 0) ? '+' : '-';
-    formatValueInBuffer(buf, PositionAxisBlue, m_gauge_data.position_axis_blue);
+  formatValueInBuffer(buf, BlueDiameter, tvgdb.sensor_data[idx].blue_diameter);
+  formatValueInBuffer(buf, MagentaDiameter,
+                      tvgdb.sensor_data[idx].magenta_diameter);
+  formatValueInBuffer(buf, Ovality, tvgdb.sensor_data[idx].ovality);
 
-    *(buf + SignPositionAxisMagenta.pos) = (m_gauge_data.position_axis_magenta > 0) ? '+' : '-';
-    formatValueInBuffer(buf, PositionAxisMagenta, m_gauge_data.position_axis_magenta);
+  *(buf + SignPositionAxisBlue.pos) =
+      (tvgdb.sensor_data[idx].position_axis_blue > 0) ? '+' : '-';
+  formatValueInBuffer(buf, PositionAxisBlue,
+                      tvgdb.sensor_data[idx].position_axis_blue);
+
+  *(buf + SignPositionAxisMagenta.pos) =
+      (tvgdb.sensor_data[idx].position_axis_magenta > 0) ? '+' : '-';
+  formatValueInBuffer(buf, PositionAxisMagenta,
+                      tvgdb.sensor_data[idx].position_axis_magenta);
 }

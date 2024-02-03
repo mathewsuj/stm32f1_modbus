@@ -2,15 +2,35 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Launch",
+      "name": "Debug with OpenOCD",
+      "type": "cortex-debug",
+      "request": "launch",
+      "servertype": "openocd",
+      "interface": "swd",
+      "cwd": "${workspaceRoot}",
+      "executable": "${workspaceFolder}/build/debug/build/stm32f1_modbus.elf",
+      "device": "STM32F103C8",
+      "svdFile": "${workspaceFolder}/main",
+      "configFiles": [
+        "C:/OpenOCD-20231002-0.12.0/share/openocd/scripts/interface/stlink.cfg",
+        "C:/OpenOCD-20231002-0.12.0/share/openocd/scripts/target/stm32f1x.cfg"
+      ],
+      "searchDir": [
+        "C:/OpenOCD-20231002-0.12.0/share/openocd/scripts/target/"
+      ],
+      "showDevDebugOutput": "none",
+      "rtos": "FreeRTOS",
+    },
+    {
+      "name": "Debug with STLink",
       "type": "cppdbg",
       "request": "launch",
       "cwd": "${workspaceFolder}",
       "program": "${command:cmake.launchTargetPath}",
       "MIMode": "gdb",
-      "miDebuggerPath": "${command:vscode-embedded.st.gdb}",
+      "miDebuggerPath": "c:/gdb/client/arm-none-eabi-gdb.exe",
       "miDebuggerServerAddress": "localhost:3333",
-      "debugServerPath": "${command:vscode-embedded.st.gdbserver}",
+      "debugServerPath": "c:/gdb/server/ST-LINK_gdbserver.exe",
       "debugServerArgs": "--stm32cubeprogrammer-path ${command:vscode-embedded.st.cubeprogrammer} --swd --port-number 3333",
       "serverStarted": "Waiting for connection on port .*\\.\\.\\.",
       "stopAtConnect": true,

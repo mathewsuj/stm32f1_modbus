@@ -22,6 +22,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "eeprom.h"
+
 #include <stdio.h>
 
 #define USART_TIMEOUT 100
@@ -56,7 +58,10 @@ const osThreadAttr_t defaultTask_attributes = {
     .priority = (osPriority_t)osPriorityNormal,
 };
 /* USER CODE BEGIN PV */
-
+/* Virtual address defined by the user: 0xFFFF value is prohibited */
+extern uint16_t VirtAddVarTab[];
+// uint16_t VarDataTab[NB_OF_VAR] = {0, 0, 0};
+// uint16_t VarValue = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -88,7 +93,8 @@ int main(void)
 
   /* MCU Configuration--------------------------------------------------------*/
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick.
+   */
   HAL_Init();
 
   /* USER CODE BEGIN Init */
@@ -99,7 +105,8 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
+  /* Unlock the Flash Program Erase controller */
+  HAL_FLASH_Unlock();
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -108,7 +115,46 @@ int main(void)
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
+  /* EEPROM Init */
+  EE_Init();
+  // EE_WriteVariable(VirtAddVarTab[0], 300);
+  // EE_ReadVariable(VirtAddVarTab[0], &VarDataTab[0]);
+  // EE_WriteVariable(VirtAddVarTab[0], VarValue);
+#if 0
 
+  /* --- Store successively many values of the three variables in the EEPROM ---*/
+  /* Store 0x1000 values of Variable1 in EEPROM */
+  for (VarValue = 1; VarValue <= 0x1000; VarValue++)
+  {
+
+  EE_WriteVariable(VirtAddVarTab[0], VarValue);
+
+  }
+
+  /* read the last stored variables data*/
+  EE_ReadVariable(VirtAddVarTab[0], &VarDataTab[0]);
+
+  /* Store 0x2000 values of Variable2 in EEPROM */
+  for (VarValue = 1; VarValue <= 0x2000; VarValue++)
+  {
+    EE_WriteVariable(VirtAddVarTab[1], VarValue);
+  }
+
+  /* read the last stored variables data*/
+  EE_ReadVariable(VirtAddVarTab[0], &VarDataTab[0]);
+  EE_ReadVariable(VirtAddVarTab[1], &VarDataTab[1]);
+
+  /* Store 0x3000 values of Variable3 in EEPROM */
+  for (VarValue = 1; VarValue <= 0x3000; VarValue++)
+  {
+    EE_WriteVariable(VirtAddVarTab[2], VarValue);
+  }
+
+  /* read the last stored variables data*/
+  EE_ReadVariable(VirtAddVarTab[0], &VarDataTab[0]);
+  EE_ReadVariable(VirtAddVarTab[1], &VarDataTab[1]);
+  EE_ReadVariable(VirtAddVarTab[2], &VarDataTab[2]);
+#endif
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -132,7 +178,8 @@ int main(void)
 
   /* Create the thread(s) */
   /* creation of defaultTask */
-  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+  defaultTaskHandle =
+      osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -180,7 +227,8 @@ void SystemClock_Config(void)
 
   /** Initializes the CPU, AHB and APB buses clocks
    */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK |
+                                RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
@@ -389,8 +437,9 @@ void Error_Handler(void)
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+  /* User can add his own implementation to report the file name and line
+     number, ex: printf("Wrong parameters value: file %s on line %d\r\n", file,
+     line) */
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */

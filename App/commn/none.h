@@ -20,7 +20,7 @@ public:
         (void)buf;
         return false;
     }
-    bool UpdateModel(const char *data, Configurations &conf)
+    bool UpdateModel(const char *data, db::SensorData &conf)
     {
         (void)data;
         (void)conf;
