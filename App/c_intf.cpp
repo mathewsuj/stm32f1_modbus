@@ -2,7 +2,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-constexpr uint16_t invalid = 0xffff;
+constexpr uint16_t kInvalid = 0xffff;
 
 uint16_t getDbValue(uint16_t adr)
 {
@@ -34,7 +34,7 @@ uint16_t getDbValue(uint16_t adr)
     case db::PRIMARY_SENSOR_POSITION_AXIS_MAGENTA:
       return sensor_values.position_axis_magenta;
     default:
-      return invalid;
+      return kInvalid;
     }
 
   } else
@@ -44,10 +44,10 @@ uint16_t getDbValue(uint16_t adr)
     return uart.BaudRate;
   }
 
-  return invalid;
+  return kInvalid;
 }
 
-uint16_t setDbValue(uint16_t adr, uint16_t value)
+uint16_t setDbValue(uint16_t adr, const uint16_t value)
 {
   int idx;
   db::TvgDatabase &sensor_data = db::TvgDatabase::getInstance();
@@ -85,7 +85,7 @@ uint16_t setDbValue(uint16_t adr, uint16_t value)
       sensor_values.position_axis_magenta.setValue(value);
       break;
     default:
-      return invalid;
+      return kInvalid;
     }
     return sensor_data.updateSensorData(idx, sensor_values);
 
@@ -95,7 +95,7 @@ uint16_t setDbValue(uint16_t adr, uint16_t value)
     return sensor_data.setPortSettings(idx, value);
   }
 
-  return invalid;
+  return kInvalid;
 }
 #ifdef __cplusplus
 }

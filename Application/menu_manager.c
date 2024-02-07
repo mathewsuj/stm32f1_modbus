@@ -45,7 +45,7 @@ void initializeMenuManager()
   const osThreadAttr_t thread_attr_task = {
       .name = "menuMgrTask",
       .stack_size = 128 * 9,
-      .priority = (osPriority_t)osPriorityNormal,
+      .priority = osPriorityNormal,
   };
 
   // Create the  thread
