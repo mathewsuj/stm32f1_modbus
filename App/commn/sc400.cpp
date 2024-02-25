@@ -2,6 +2,23 @@
 
 #include "sc400.h"
 
+const char *Sc400::GetFrame(const char *data, const char crc)
+{
+  while (*data)
+  {
+    if (*data != STX)
+      data++;
+    else
+    {
+      if (!CheckCrc(data, crc))
+        break;
+      if (*(data + 1) == NAK)
+        break;
+      return data;
+    }
+  }
+  return nullptr;
+}
 bool Sc400::CheckCrc(const char *data, const char crc)
 {
   uint8_t bcc = 0;
@@ -20,7 +37,7 @@ bool Sc400::CheckCrc(const char *data, const char crc)
 }
 bool Sc400::MakeResponsePacket(const int reqid, char *payload)
 {
-  static_assert(StatusMeanValue.pos == 4);
+  static_assert(StatusMeanValue.pos == db::db_start);
   if (reqid > 999)
     return false; // invalid reqid
   if (reqid != 302)
@@ -56,7 +73,7 @@ bool Sc400::MakeResponsePacket(const int reqid, char *payload)
 
   return true;
 }
-const char *Sc400::MakeRequestPacket(int reqid)
+const char *Sc400::MakeRequestPacket(const int reqid)
 {
   if (reqid > 999)
     return nullptr; // invalid reqid

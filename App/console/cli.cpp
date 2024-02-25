@@ -20,7 +20,7 @@ void Cli::processCommand(const char *inp)
       switch (static_cast<CommandType>(idx))
       {
       case HELP:
-        logMessage("\n\rcommands:\n\r\thelp\n\r", false);
+        debugLog("\n\rcommands:\n\r\thelp\n\r");
         return;
 
       case DUMP_MODEL:
@@ -38,7 +38,7 @@ void Cli::processCommand(const char *inp)
           if (port_number > 3 || port_number <= 0)
           {
 
-            logMessage("\n\rInvalid port id in set port command!\n\r", false);
+            debugLog("\n\rInvalid port id in set port command!\n\r");
             return;
           }
 
@@ -48,31 +48,31 @@ void Cli::processCommand(const char *inp)
               parity_type != db::Communication::ParityType::Odd &&
               parity_type != db::Communication::ParityType::None)
           {
-            logMessage("\n\rInvalid Parity for set port command!\n\r", false);
+            debugLog("\n\rInvalid Parity for set port command!\n\r");
             return;
           }
           uint16_t baud_rate = std::stoi(tokens[2]);
           auto &device_data = db::TvgDatabase::getInstance();
           device_data.setPortSettings(port_number, baud_rate);
 
-          logMessage("\n\rport setting changed.\n\r", false);
+          debugLog("\n\rport setting changed.\n\r", false);
         } else
         {
-          logMessage("\n\rInvalid arguments in set port command!\n\r", false);
+          debugLog("\n\rInvalid arguments in set port command!\n\r");
         }
 
         return;
       case SOFT_RESET:
-        logMessage("\n\rResetting...\n\r", false);
+        debugLog("\n\rResetting...\n\r");
         __disable_irq();
         NVIC_SystemReset();
         break;
       default:
-        logMessage("\n\rcommand not found!\n\r", false);
+        debugLog("\n\rcommand not found!\n\r");
       }
     }
   }
-  logMessage("\n\rcommand not found!\n\r", false);
+  debugLog("\n\rcommand not found!\n\r");
 }
 
 int Cli::parseInput(const char *input)

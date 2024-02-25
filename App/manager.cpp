@@ -26,7 +26,7 @@ portData<uart_debug_port> debug_port(&huart3);
 portData<uart_PC> PC_port(&huart1);
 
 UartDevice<ProtocolBase::ProtocolId::SC400, char>
-    port_primary_sensor(primary_sensor.hnd, 45);
+    port_primary_sensor(primary_sensor.hnd, 1);
 // uart_device<uart_secondary_sensor> port_secondary_sensor;
 UartDevice<ProtocolBase::ProtocolId::NONE, char> port_debug(debug_port.hnd, 1);
 UartDevice<ProtocolBase::ProtocolId::SC400, char> port_PC(PC_port.hnd, 20);
@@ -34,47 +34,38 @@ UartDevice<ProtocolBase::ProtocolId::SC400, char> port_PC(PC_port.hnd, 20);
 osThreadId_t MgrThreadID;
 
 template <typename T>
-void processData(UartDevice<ProtocolBase::ProtocolId::SC400, char> &port,
-                 char delimiter);
+void processData(UartDevice<ProtocolBase::ProtocolId::SC400, char> &port);
 
 template <>
 void processData<uart_primary_sensor>(
-    UartDevice<ProtocolBase::ProtocolId::SC400, char> &port,
-    const char delimiter)
+    UartDevice<ProtocolBase::ProtocolId::SC400, char> &port)
 {
   port.SendRequestPacket(302);
   osDelay(500);
-  if (const char *inp = port.GetString(delimiter); inp)
+  if (const char *inp = port.GetNextFrame(); inp)
   {
-    const char crc = port.Read();
-    if (*inp && port.CheckCrc(inp, crc))
-    {
-      logMessage("New packet from gauge received\n\r", true);
-      db::SensorData newConfig;
-      port.UpdateModel(inp, newConfig);
-      auto &sensor_data = db::TvgDatabase::getInstance();
-      sensor_data.updateSensorData(0, newConfig);
-    }
+
+    debugLog("New packet from gauge received\n\r");
+    db::SensorData newConfig;
+    port.UpdateModel(inp, newConfig);
+    auto &sensor_data = db::TvgDatabase::getInstance();
+    sensor_data.updateSensorData(0, newConfig);
   }
 }
 
 template <>
 void processData<uart_PC>(
-    UartDevice<ProtocolBase::ProtocolId::SC400, char> &port,
-    const char delimiter)
+    UartDevice<ProtocolBase::ProtocolId::SC400, char> &port)
 {
-  if (const char *inp = port.GetString(delimiter); inp)
+  if (const char *inp = port.GetNextFrame(); inp)
   {
-    const char crc = port.Read();
-    if (*inp && port.CheckCrc(inp, crc))
-    {
-      auto id = atoi(inp + 1);
-      logMessage("New packet from PC received\n\r", true);
-      char buf[100];
-      auto &sensor_data = db::TvgDatabase::getInstance();
-      sensor_data.GetValues<sc400>(buf);
-      port.SendResponsePacket(id, buf);
-    }
+
+    auto id = atoi(inp + 1);
+    debugLog("New packet from PC received\n\r");
+    char buf[100];
+    auto &sensor_data = db::TvgDatabase::getInstance();
+    sensor_data.GetValues<sc400>(buf);
+    port.SendResponsePacket(id, buf);
   }
 }
 
@@ -102,10 +93,10 @@ void managerThread(void *argument)
   while (1)
   {
     // get data from gauge
-    processData<uart_primary_sensor>(port_primary_sensor, Sc400::ETX);
+    processData<uart_primary_sensor>(port_primary_sensor);
 
     // response to query from PC
-    processData<uart_PC>(port_PC, 0x3);
+    processData<uart_PC>(port_PC);
 
 #ifdef debug
     uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
@@ -115,6 +106,26 @@ void managerThread(void *argument)
       debugLog("HighWaterMark - %s: %ld\r\n", taskName, minWaterMark);
     }
 #endif
+  }
+}
+void uartSetPortConfiguration(const uint8_t port,
+                              const db::Communication::SerialPort &setting)
+{
+  auto &sensor_data = db::TvgDatabase::getInstance();
+  switch (port)
+  {
+  case 1:
+    sensor_data.setPortSettings<uart_primary_sensor>(setting);
+    break;
+  case 2:
+    sensor_data.setPortSettings<uart_secondary_sensor>(setting);
+    break;
+  case 3:
+    sensor_data.setPortSettings<uart_PC>(setting);
+    break;
+  default:
+    // Handle invalid port number (optional)
+    break;
   }
 }
 

@@ -15,6 +15,8 @@ void consolePutstr(const char *data, const std::size_t size);
 char *consoleGetcommand();
 void consoleDumpmodel();
 void consoleDumpports();
+void uartSetPortConfiguration(const uint8_t port,
+                              const db::Communication::SerialPort &setting);
 
 #ifdef __cplusplus
 }

@@ -1,14 +1,13 @@
+#include "model.h"
+#include "console.h"
+#include "manager.h"
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
 
-#include "console.h"
-#include "manager.h"
-#include "model.h"
-
 using namespace db;
 
-osMutexId_t TvgDatabase::mutex = osMutexNew(NULL);
+// osMutexId_t TvgDatabase::mutex = osMutexNew(NULL);
 
 uint16_t EEpromLocs[NO_EEPROM_LOC];
 
@@ -16,8 +15,6 @@ void TvgDatabase::dumpModel()
 {
   int idx = 0;
   debugLog("Gauge Data Dump:\r\n");
-  debugLog("gauge data mean value: %d\r\n",
-           tvgdb.sensor_data[idx].status_mean_value.getValue());
   debugLog("Status Mean Value: %d\r\n",
            tvgdb.sensor_data[idx].status_mean_value.getValue());
   debugLog("Mean Value: %d\r\n", tvgdb.sensor_data[idx].mean_value.getValue());
@@ -25,7 +22,8 @@ void TvgDatabase::dumpModel()
   debugLog("Blue Diameter:  %d\r\n",
            tvgdb.sensor_data[idx].blue_diameter.getValue());
   debugLog("Magenta Diameter:  %d\r\n",
-           tvgdb.sensor_data[idx].ovality.getValue());
+           tvgdb.sensor_data[idx].magenta_diameter.getValue());
+  debugLog("Ovality:  %d\r\n", tvgdb.sensor_data[idx].ovality.getValue());
   debugLog("Position Axis Blue:  %d\r\n",
            tvgdb.sensor_data[idx].position_axis_blue.getValue());
   debugLog("Position Axis Magenta:  %d\r\n",

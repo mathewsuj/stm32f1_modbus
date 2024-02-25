@@ -25,9 +25,9 @@ void MenuMgrThread(void *argument)
 
   while (1)
   {
-    uint16_t val = getDbValue(PRIMARY_SENSOR_MEAN_VALUE);
-    debugLog("sensor: mean value: %d\r\n", val);
-    setDbValue(PRIMARY_SENSOR_MEAN_VALUE, val + 1);
+    // uint16_t val = getDbValue(PRIMARY_SENSOR_MEAN_VALUE);
+    // debugLog("sensor: mean value: %d\r\n", val);
+    // setDbValue(PRIMARY_SENSOR_MEAN_VALUE, val + 1);
     osDelay(1000);
 #ifdef debug
     uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
