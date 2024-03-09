@@ -1,43 +1,32 @@
 #pragma once
+#include <array>
+
 #include "circularbuf.h"
 #include "cmsis_os.h"
 #include "none.h"
 #include "sc400.h"
 
-template <ProtocolBase::ProtocolId Id>
-struct ProtocolSelector;
-
-template <>
-struct ProtocolSelector<ProtocolBase::ProtocolId::SC400> {
-  using type = Sc400;
-};
-template <>
-struct ProtocolSelector<ProtocolBase::ProtocolId::NONE> {
-  using type = None;
-};
-
-template <ProtocolBase::ProtocolId Id>
-using SelectedProtocol = typename ProtocolSelector<Id>::type;
-
-template <typename portId>
-struct portData {
-  UART_HandleTypeDef *hnd;
-  portData(UART_HandleTypeDef *handler) : hnd(handler) {}
-};
-
-template <ProtocolBase::ProtocolId protocol_id, typename T>
+template <typename portId, typename T>
 class UartDevice {
   static constexpr size_t LOG_SIZE = 100;
   static constexpr size_t MSG_SIZE = 50;
   static constexpr int DEFAULT_TIMEOUT = 150;
 
-  SelectedProtocol<protocol_id> protocolInstance;
-
 public:
   UartDevice(UART_HandleTypeDef *hnd_port, size_t buf_size,
              int timeout = DEFAULT_TIMEOUT)
       : m_hnd_port(hnd_port), m_buf_size(buf_size), m_timeout(timeout)
-  {}
+  {
+    protocolInstance[static_cast<std::size_t>(ProtocolId::SC400)] =
+        (ProtocolBase *)&Sc400Protocol;
+    protocolInstance[static_cast<std::size_t>(ProtocolId::NONE)] =
+        (ProtocolBase *)&NoneProtocol;
+    SetProtocol(ProtocolId::NONE);
+  }
+  const UART_HandleTypeDef *GetUartHandle()
+  {
+    return m_hnd_port;
+  }
   inline bool Init(const db::Communication::SerialPort &conf)
   {
     if (ChangeSettings(conf))
@@ -49,11 +38,17 @@ public:
     }
     return true;
   }
+  void SetProtocol(uint8_t id)
+  {
+    protocolSelector = id;
+  }
 
   bool ChangeSettings(const db::Communication::SerialPort &conf)
   {
     HAL_UART_Abort_IT(m_hnd_port);
     HAL_UART_DeInit(m_hnd_port);
+
+    SetProtocol(conf.Protocol);
 
     m_hnd_port->Init.BaudRate = conf.BaudRate;
     return (HAL_UART_Init(m_hnd_port) == HAL_OK);
@@ -69,7 +64,7 @@ public:
 
   void UpdateModel(const char *data, db::SensorData &conf)
   {
-    protocolInstance.UpdateModel(data, conf);
+    protocolInstance[protocolSelector]->UpdateModel(data, conf);
   }
 
   void SendResponsePacket(const int id, char *buf)
@@ -85,17 +80,17 @@ public:
 
   const char *MakeRequestPacket(const int id)
   {
-    return protocolInstance.MakeRequestPacket(id);
+    return protocolInstance[protocolSelector]->MakeRequestPacket(id);
   }
 
   bool MakeResponsePacket(const int id, char *buf)
   {
-    return protocolInstance.MakeResponsePacket(id, buf);
+    return protocolInstance[protocolSelector]->MakeResponsePacket(id, buf);
   }
 
   bool CheckCrc(const char *data, const char crc)
   {
-    return protocolInstance.CheckCrc(data, crc);
+    return protocolInstance[protocolSelector]->CheckCrc(data, crc);
   }
 
   void DataRdy()
@@ -111,14 +106,14 @@ public:
 
   const T *GetNextFrame()
   {
-    const char *inp = GetString(protocolInstance.GetEOF());
+    const char *inp = GetString(protocolInstance[protocolSelector]->GetEOF());
     if (!inp)
       return inp;
     char crc = 0;
-    if constexpr (protocol_id == ProtocolBase::ProtocolId::SC400)
+    if (protocolSelector == (int)ProtocolId::SC400)
       crc = Read();
 
-    return protocolInstance.GetFrame(inp, crc);
+    return protocolInstance[protocolSelector]->GetFrame(inp, crc);
   }
 
   T *GetString(T delimiter)
@@ -137,4 +132,10 @@ private:
   size_t m_buf_size;
   int m_timeout;
   uint8_t m_rx_buffer[MSG_SIZE];
+  uint8_t protocolSelector;
+  None NoneProtocol;
+  Sc400 Sc400Protocol;
+
+  std::array<ProtocolBase *, static_cast<std::size_t>(ProtocolId::PROTO_MAX)>
+      protocolInstance;
 };

@@ -22,7 +22,9 @@ uint16_t VirtAddVarTab[] = {PRIMARY_SENSOR_STATUS_MEAN_VALUE,
                             SECONDARY_SENSOR_POSITION_AXIS_BLUE,
                             SECONDARY_SENSOR_POSITION_AXIS_MAGENTA,
                             PRIMARY_PORT_BAUDRATE,
+                            PRIMARY_PORT_PROTOCOL,
                             SECONDARY_PORT_BAUDRATE,
+                            SECONDARY_PORT_PROTOCOL,
                             PC_PORT_BAUDRATE};
 
 extern "C" void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)

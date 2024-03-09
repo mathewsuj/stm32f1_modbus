@@ -55,7 +55,30 @@ void Cli::processCommand(const char *inp)
           auto &device_data = db::TvgDatabase::getInstance();
           device_data.setPortSettings(port_number, baud_rate);
 
-          debugLog("\n\rport setting changed.\n\r", false);
+          debugLog("\n\rport setting changed.\n\r");
+        } else
+        {
+          debugLog("\n\rInvalid arguments in set port command!\n\r");
+        }
+
+        return;
+      case SET_PROTOCOL:
+
+        if (token_count > 2)
+        {
+          int port_number = std::stoi(tokens[1]);
+          if (port_number > 3 || port_number <= 0)
+          {
+
+            debugLog("\n\rInvalid port id in set port command!\n\r");
+            return;
+          }
+
+          uint8_t protocol_id = std::stoi(tokens[2]);
+          auto &device_data = db::TvgDatabase::getInstance();
+          device_data.setProtocol(port_number, protocol_id);
+
+          debugLog("\n\rport setting changed.\n\r");
         } else
         {
           debugLog("\n\rInvalid arguments in set port command!\n\r");

@@ -20,6 +20,8 @@ struct uart_PC {};
 
 struct sc400 {};
 
+enum ProtocolId : uint8_t { SC400, NONE, PROTO_MAX };
+
 namespace db
 {
 template <typename T>
@@ -115,7 +117,11 @@ constexpr DataDef SignPositionAxisMagenta{db_start + 33, 1};
 constexpr DataDef PositionAxisMagenta{db_start + 34, 5};
 constexpr DataDef Sc400DataEnd{db_start + 39, 0};
 } // namespace sikora
-
+namespace tvg5000
+{
+constexpr DataDef XaxisDiameter{db_start, 3};
+constexpr DataDef YaxisDiameter{db_start + 3, 3};
+} // namespace tvg5000
 namespace Communication
 {
 enum class ParityType : uint8_t { Even, Odd, None };
@@ -124,6 +130,7 @@ struct SerialPort {
   Data<ParityType> Parity{ParityType::Even, ParityType::Even, ParityType::Odd,
                           false};
   Data<uint8_t> StopBits{1, 1, 2, false};
+  Data<uint8_t> Protocol{ProtocolId::NONE, 0, ProtocolId::PROTO_MAX - 1, true};
   SerialPort() = default;
   void setValue(SerialPort p)
   {
@@ -191,6 +198,8 @@ public:
     {
       getValueFromEEPROM(tvgdb.uart_port[idx].BaudRate,
                          PRIMARY_PORT_BAUDRATE + idx);
+      getValueFromEEPROM(tvgdb.uart_port[idx].Protocol,
+                         PRIMARY_PORT_PROTOCOL + idx);
     }
   }
   template <typename T>
@@ -260,6 +269,23 @@ public:
     {
       return false;
     }
+  }
+  bool setProtocol(int port, uint8_t proto_id)
+  {
+    int portidx = port - 1;
+    if ((portidx >= 0) && (portidx < kUartCount))
+    {
+      auto result = tvgdb.uart_port[portidx].Protocol.setValue(proto_id);
+      if (tvgdb.uart_port[portidx].Protocol.isChanged())
+      {
+        // save in eeprom
+        EEPromWrite(PRIMARY_PORT_PROTOCOL + portidx,
+                    static_cast<uint16_t>(tvgdb.uart_port[portidx].Protocol));
+      }
+      return result;
+    }
+
+    return false;
   }
   Communication::SerialPort getPortSettings(int idx) const
   {
