@@ -37,7 +37,7 @@ bool Sc400::CheckCrc(const char *data, const char crc)
 }
 bool Sc400::MakeResponsePacket(const int reqid, char *payload)
 {
-  static_assert(StatusMeanValue.pos == db::db_start);
+  static_assert(db::sikora::StatusMeanValue.pos == db::db_start);
   if (reqid > 999)
     return false; // invalid reqid
   if (reqid != 302)
@@ -56,20 +56,21 @@ bool Sc400::MakeResponsePacket(const int reqid, char *payload)
     bcc ^= c;
   }
   // populate data
-  for (size_t i = StatusMeanValue.pos; i < Sc400DataEnd.pos; ++i)
+  for (size_t i = db::sikora::StatusMeanValue.pos;
+       i < db::sikora::Sc400DataEnd.pos; ++i)
   {
     auto c = *(payload + i);
     // m_tx_buffer[i] = c;
     bcc ^= c;
   }
 
-  payload[Sc400DataEnd.pos] = ETX;
+  payload[db::sikora::Sc400DataEnd.pos] = ETX;
   bcc ^= ETX;
 
   if (bcc < 0x20)
     bcc += 0x20;
-  payload[Sc400DataEnd.pos + 1] = bcc;
-  payload[Sc400DataEnd.pos + 2] = '\0';
+  payload[db::sikora::Sc400DataEnd.pos + 1] = bcc;
+  payload[db::sikora::Sc400DataEnd.pos + 2] = '\0';
 
   return true;
 }
@@ -98,10 +99,11 @@ const char *Sc400::MakeRequestPacket(const int reqid)
   m_tx_buffer[6] = '\0';
   return m_tx_buffer;
 }
-bool Sc400::UpdateModel(const char *data, db::SensorData &conf)
+bool Sc400::UpdateModel(const char *data, db::SensorData &conf, bool mono)
 {
-  conf.status_mean_value =
-      (*(data + StatusMeanValue.pos) - '0'); // skip STX and Command Id bytes
+  (void)mono;
+  conf.status_mean_value = (*(data + db::sikora::StatusMeanValue.pos) -
+                            '0'); // skip STX and Command Id bytes
 
   auto parseInteger = [](const char *begin, std::size_t size,
                          auto &value) -> bool {
@@ -111,44 +113,50 @@ bool Sc400::UpdateModel(const char *data, db::SensorData &conf)
   };
 
   uint16_t value;
-  if (!parseInteger(data + MeanValue.pos, MeanValue.size, value))
+  if (!parseInteger(data + db::sikora::MeanValue.pos,
+                    db::sikora::MeanValue.size, value))
     return false;
   conf.mean_value = value;
 
-  char sign = *(data + SignDeviation.pos);
+  char sign = *(data + db::sikora::SignDeviation.pos);
 
-  if (!parseInteger(data + Deviation.pos, Deviation.size, value))
+  if (!parseInteger(data + db::sikora::Deviation.pos,
+                    db::sikora::Deviation.size, value))
     return false;
   conf.deviation = value;
 
   if (sign == '_')
     conf.deviation *= -1;
 
-  if (!parseInteger(data + BlueDiameter.pos, BlueDiameter.size, value))
+  if (!parseInteger(data + db::sikora::BlueDiameter.pos,
+                    db::sikora::BlueDiameter.size, value))
     return false;
   conf.blue_diameter = value;
 
-  if (!parseInteger(data + MagentaDiameter.pos, MagentaDiameter.size, value))
+  if (!parseInteger(data + db::sikora::MagentaDiameter.pos,
+                    db::sikora::MagentaDiameter.size, value))
     return false;
   conf.magenta_diameter = value;
 
-  if (!parseInteger(data + Ovality.pos, Ovality.size, value))
+  if (!parseInteger(data + db::sikora::Ovality.pos, db::sikora::Ovality.size,
+                    value))
     return false;
   conf.ovality = value;
 
-  sign = *(data + SignPositionAxisBlue.pos);
+  sign = *(data + db::sikora::SignPositionAxisBlue.pos);
 
-  if (!parseInteger(data + PositionAxisBlue.pos, PositionAxisBlue.size, value))
+  if (!parseInteger(data + db::sikora::PositionAxisBlue.pos,
+                    db::sikora::PositionAxisBlue.size, value))
     return false;
   conf.position_axis_blue = value;
 
   if (sign == '-')
     conf.position_axis_blue *= -1;
 
-  sign = *(data + SignPositionAxisMagenta.pos);
+  sign = *(data + db::sikora::SignPositionAxisMagenta.pos);
 
-  if (!parseInteger(data + PositionAxisMagenta.pos, PositionAxisMagenta.size,
-                    value))
+  if (!parseInteger(data + db::sikora::PositionAxisMagenta.pos,
+                    db::sikora::PositionAxisMagenta.size, value))
     return false;
   conf.position_axis_magenta = value;
 

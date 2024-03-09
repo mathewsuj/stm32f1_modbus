@@ -24,6 +24,7 @@ UartDevice<uart_primary_sensor, char> port_primary_sensor(&huart2, 1);
 // uart_device<uart_secondary_sensor> port_secondary_sensor;
 UartDevice<uart_debug_port, char> port_debug(&huart3, 1);
 UartDevice<uart_PC, char> port_PC(&huart1, 20);
+bool mono = true;
 //-------------------------------------------------------------------------------
 osThreadId_t MgrThreadID;
 
@@ -33,14 +34,17 @@ void processData();
 template <>
 void processData<uart_primary_sensor>()
 {
-  port_primary_sensor.SendRequestPacket(302);
-  osDelay(500);
+  if (port_primary_sensor.GetProtocol() == ProtocolId::SC400)
+  {
+    port_primary_sensor.SendRequestPacket(302);
+    osDelay(500);
+  }
   if (const char *inp = port_primary_sensor.GetNextFrame(); inp)
   {
 
     debugLog("New packet from gauge received\n\r");
     db::SensorData newConfig;
-    port_primary_sensor.UpdateModel(inp, newConfig);
+    port_primary_sensor.UpdateModel(inp, newConfig, mono);
     auto &sensor_data = db::TvgDatabase::getInstance();
     sensor_data.updateSensorData(0, newConfig);
   }
@@ -95,6 +99,8 @@ void managerThread(void *argument)
 
     // response to query from PC
     processData<uart_PC>();
+
+    osDelay(500);
 
 #ifdef debug
     uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);

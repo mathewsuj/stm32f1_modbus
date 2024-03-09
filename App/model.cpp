@@ -15,19 +15,41 @@ void TvgDatabase::dumpModel()
 {
   int idx = 0;
   debugLog("Gauge Data Dump:\r\n");
-  debugLog("Status Mean Value: %d\r\n",
-           tvgdb.sensor_data[idx].status_mean_value.getValue());
-  debugLog("Mean Value: %d\r\n", tvgdb.sensor_data[idx].mean_value.getValue());
-  debugLog("Deviation: %d\r\n", tvgdb.sensor_data[idx].deviation.getValue());
-  debugLog("Blue Diameter:  %d\r\n",
-           tvgdb.sensor_data[idx].blue_diameter.getValue());
-  debugLog("Magenta Diameter:  %d\r\n",
-           tvgdb.sensor_data[idx].magenta_diameter.getValue());
-  debugLog("Ovality:  %d\r\n", tvgdb.sensor_data[idx].ovality.getValue());
-  debugLog("Position Axis Blue:  %d\r\n",
-           tvgdb.sensor_data[idx].position_axis_blue.getValue());
-  debugLog("Position Axis Magenta:  %d\r\n",
-           tvgdb.sensor_data[idx].position_axis_magenta.getValue());
+  if (tvgdb.uart_port[0].Protocol == SC400)
+  {
+    debugLog("Status Mean Value: %d\r\n",
+             tvgdb.sensor_data[idx].status_mean_value.getValue());
+    debugLog("Mean Value: %d\r\n",
+             tvgdb.sensor_data[idx].mean_value.getValue());
+    debugLog("Deviation: %d\r\n", tvgdb.sensor_data[idx].deviation.getValue());
+    debugLog("Blue Diameter:  %d\r\n",
+             tvgdb.sensor_data[idx].blue_diameter.getValue());
+    debugLog("Magenta Diameter:  %d\r\n",
+             tvgdb.sensor_data[idx].magenta_diameter.getValue());
+    debugLog("Ovality:  %d\r\n", tvgdb.sensor_data[idx].ovality.getValue());
+    debugLog("Position Axis Blue:  %d\r\n",
+             tvgdb.sensor_data[idx].position_axis_blue.getValue());
+    debugLog("Position Axis Magenta:  %d\r\n",
+             tvgdb.sensor_data[idx].position_axis_magenta.getValue());
+  } else if (tvgdb.uart_port[0].Protocol == TVG5000)
+  {
+
+    if (tvgdb.uart_port[0].MonoDual == 0)
+    {
+      debugLog("Wire Position:  %d\r\n",
+               tvgdb.sensor_data[idx].wire_position.getValue());
+      debugLog("Mean Diameter:  %d\r\n",
+               tvgdb.sensor_data[idx].mean_diameter.getValue());
+    } else
+    {
+
+      debugLog("X Axis Diameter:  %d\r\n",
+               tvgdb.sensor_data[idx].x_axis_diameter.getValue());
+
+      debugLog("Y Axis Diameter:  %d\r\n",
+               tvgdb.sensor_data[idx].y_axis_diameter.getValue());
+    }
+  }
 }
 void TvgDatabase::printPortSettings(const char *portName,
                                     const Communication::SerialPort &port)

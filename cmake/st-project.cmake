@@ -130,6 +130,7 @@ target_sources(
     "App\\commn\\hal.cpp"
     "App\\commn\\protocolbase.cpp"
     "App\\commn\\sc400.cpp"
+    "App\\commn\\tvg5000.cpp"
     "App\\console\\cli.cpp"
     "App\\console\\console.cpp"
     "App\\manager.cpp"

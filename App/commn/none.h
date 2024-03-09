@@ -20,10 +20,12 @@ public:
     (void)buf;
     return false;
   }
-  bool UpdateModel(const char *data, db::SensorData &conf) override
+  bool UpdateModel(const char *data, db::SensorData &conf,
+                   bool mono = true) override
   {
     (void)data;
     (void)conf;
+    (void)mono;
     return true;
   }
   const char *GetFrame(const char *data, const char crc)

@@ -20,7 +20,7 @@ struct uart_PC {};
 
 struct sc400 {};
 
-enum ProtocolId : uint8_t { SC400, NONE, PROTO_MAX };
+enum ProtocolId : uint8_t { SC400, TVG5000, NONE, PROTO_MAX };
 
 namespace db
 {
@@ -100,6 +100,10 @@ struct SensorData {
   Data<uint16_t> ovality{0, 0, 100, false};
   Data<int16_t> position_axis_blue{0, -1000, 1000, false};
   Data<int16_t> position_axis_magenta{0, -1000, 1000, false};
+  Data<int16_t> wire_position{0, -30000, 30000, false};
+  Data<uint16_t> mean_diameter{0, 0000, 60000, false};
+  Data<uint16_t> x_axis_diameter{0, 0000, 60000, false};
+  Data<uint16_t> y_axis_diameter{0, 0000, 60000, false};
 };
 constexpr int db_start = 1;
 namespace sikora
@@ -119,8 +123,8 @@ constexpr DataDef Sc400DataEnd{db_start + 39, 0};
 } // namespace sikora
 namespace tvg5000
 {
-constexpr DataDef XaxisDiameter{db_start, 3};
-constexpr DataDef YaxisDiameter{db_start + 3, 3};
+constexpr DataDef Data1{db_start, 3};
+constexpr DataDef Data2{db_start + 3, 3};
 } // namespace tvg5000
 namespace Communication
 {
@@ -131,6 +135,7 @@ struct SerialPort {
                           false};
   Data<uint8_t> StopBits{1, 1, 2, false};
   Data<uint8_t> Protocol{ProtocolId::NONE, 0, ProtocolId::PROTO_MAX - 1, true};
+  Data<uint16_t> MonoDual{0, 0, 1, true};
   SerialPort() = default;
   void setValue(SerialPort p)
   {
@@ -200,6 +205,11 @@ public:
                          PRIMARY_PORT_BAUDRATE + idx);
       getValueFromEEPROM(tvgdb.uart_port[idx].Protocol,
                          PRIMARY_PORT_PROTOCOL + idx);
+      if (idx == 0)
+      {
+        getValueFromEEPROM(tvgdb.uart_port[idx].MonoDual,
+                           PRIMARY_PORT_IS_MONO + idx);
+      }
     }
   }
   template <typename T>
@@ -250,6 +260,22 @@ public:
     setValueInEEPROM<int16_t>(tvgdb.sensor_data[idx].position_axis_magenta,
                               PRIMARY_SENSOR_POSITION_AXIS_MAGENTA + offset,
                               newData.position_axis_magenta);
+
+    setValueInEEPROM<int16_t>(tvgdb.sensor_data[idx].wire_position,
+                              PRIMARY_SENSOR_WIRE_POSITION + offset,
+                              newData.wire_position);
+
+    setValueInEEPROM<uint16_t>(tvgdb.sensor_data[idx].mean_diameter,
+                               PRIMARY_SENSOR_MEAN_DIAMETER + offset,
+                               newData.mean_diameter);
+
+    setValueInEEPROM<uint16_t>(tvgdb.sensor_data[idx].x_axis_diameter,
+                               PRIMARY_SENSOR_X_AXIS_DIAMETER + offset,
+                               newData.x_axis_diameter);
+
+    setValueInEEPROM<uint16_t>(tvgdb.sensor_data[idx].y_axis_diameter,
+                               PRIMARY_SENSOR_Y_AXIS_DIAMETER + offset,
+                               newData.y_axis_diameter);
     return true;
   }
   bool setPortSettings(int port, int baud)

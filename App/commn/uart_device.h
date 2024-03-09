@@ -5,6 +5,7 @@
 #include "cmsis_os.h"
 #include "none.h"
 #include "sc400.h"
+#include "tvg5000.h"
 
 template <typename portId, typename T>
 class UartDevice {
@@ -21,7 +22,10 @@ public:
         (ProtocolBase *)&Sc400Protocol;
     protocolInstance[static_cast<std::size_t>(ProtocolId::NONE)] =
         (ProtocolBase *)&NoneProtocol;
+    protocolInstance[static_cast<std::size_t>(ProtocolId::TVG5000)] =
+        (ProtocolBase *)&Tvg5000Protocol;
     SetProtocol(ProtocolId::NONE);
+    mono = false;
   }
   const UART_HandleTypeDef *GetUartHandle()
   {
@@ -42,6 +46,10 @@ public:
   {
     protocolSelector = id;
   }
+  uint8_t GetProtocol()
+  {
+    return protocolSelector;
+  }
 
   bool ChangeSettings(const db::Communication::SerialPort &conf)
   {
@@ -49,6 +57,7 @@ public:
     HAL_UART_DeInit(m_hnd_port);
 
     SetProtocol(conf.Protocol);
+    mono = conf.MonoDual;
 
     m_hnd_port->Init.BaudRate = conf.BaudRate;
     return (HAL_UART_Init(m_hnd_port) == HAL_OK);
@@ -62,9 +71,9 @@ public:
       SendByte(cmd, size);
   }
 
-  void UpdateModel(const char *data, db::SensorData &conf)
+  void UpdateModel(const char *data, db::SensorData &conf, bool mono)
   {
-    protocolInstance[protocolSelector]->UpdateModel(data, conf);
+    protocolInstance[protocolSelector]->UpdateModel(data, conf, mono);
   }
 
   void SendResponsePacket(const int id, char *buf)
@@ -132,9 +141,11 @@ private:
   size_t m_buf_size;
   int m_timeout;
   uint8_t m_rx_buffer[MSG_SIZE];
+  bool mono;
   uint8_t protocolSelector;
   None NoneProtocol;
   Sc400 Sc400Protocol;
+  Tvg5000 Tvg5000Protocol;
 
   std::array<ProtocolBase *, static_cast<std::size_t>(ProtocolId::PROTO_MAX)>
       protocolInstance;

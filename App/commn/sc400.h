@@ -7,7 +7,6 @@
 #include "model.h"
 
 #include "protocolbase.h"
-using namespace db::sikora;
 
 class Sc400 : public ProtocolBase {
 
@@ -23,7 +22,8 @@ public:
   bool CheckCrc(const char *data, const char crc) override;
   const char *MakeRequestPacket(const int reqid) override;
   bool MakeResponsePacket(const int reqid, char *payload) override;
-  bool UpdateModel(const char *data, db::SensorData &conf) override;
+  bool UpdateModel(const char *data, db::SensorData &conf,
+                   bool mono = true) override;
   const char *GetFrame(const char *data, const char crc) override;
   char GetEOF()
   {
